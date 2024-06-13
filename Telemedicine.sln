@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telemedicine.App", "Telemedicine.App\Telemedicine.App.csproj", "{11C083F3-BBEC-4C5C-832B-B2540DB651C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telemedicine.Utilities", "Telemedicine.Utilities\Telemedicine.Utilities.csproj", "{3A8513B6-584A-431C-81D1-1240F2882A03}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telemedicine.Models", "Telemedicine.Models\Telemedicine.Models.csproj", "{098EF733-0163-43F7-9AA0-FC21DE7712AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telemedicine.Services", "Telemedicine.Services\Telemedicine.Services.csproj", "{B71E9068-2FEB-495D-8D3A-C5AFF7B5DF3B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11C083F3-BBEC-4C5C-832B-B2540DB651C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11C083F3-BBEC-4C5C-832B-B2540DB651C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11C083F3-BBEC-4C5C-832B-B2540DB651C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11C083F3-BBEC-4C5C-832B-B2540DB651C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A8513B6-584A-431C-81D1-1240F2882A03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A8513B6-584A-431C-81D1-1240F2882A03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A8513B6-584A-431C-81D1-1240F2882A03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A8513B6-584A-431C-81D1-1240F2882A03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{098EF733-0163-43F7-9AA0-FC21DE7712AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{098EF733-0163-43F7-9AA0-FC21DE7712AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{098EF733-0163-43F7-9AA0-FC21DE7712AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{098EF733-0163-43F7-9AA0-FC21DE7712AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B71E9068-2FEB-495D-8D3A-C5AFF7B5DF3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B71E9068-2FEB-495D-8D3A-C5AFF7B5DF3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B71E9068-2FEB-495D-8D3A-C5AFF7B5DF3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B71E9068-2FEB-495D-8D3A-C5AFF7B5DF3B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F4524B6D-5185-4FAF-9DFE-2A6E61CDC3C8}
+	EndGlobalSection
+EndGlobal

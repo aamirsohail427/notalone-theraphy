@@ -1,0 +1,120 @@
+﻿@model Telemedicine.Models.Dtos.StoreProcedureDto.GetDoctorsByFiltersDto
+@using Telemedicine.App.Controllers
+@using Telemedicine.Utilities
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+@{
+    if (!(Model is null))
+    {
+        if (!(Model.Doctors is null))
+        {
+            if (Model.Doctors.Any())
+            {
+                foreach (var item in Model.Doctors)
+                {
+                    string profilePicture = "#";
+                    if (!string.IsNullOrEmpty(profilePicture))
+                        profilePicture = AzureConfigurations.AZURE_BLOB_BASE_URL + item.ProfilePictureUrl;
+
+                    decimal rating = 0.00m;
+
+                    if (item.Rating.HasValue)
+                        rating = (item.Rating.Value / 5);
+
+                    string ratingPercentage = Convert.ToString((rating * 100));
+
+                    <div class="col s12">
+                        <div class="card horizontal z-depth-5">
+                            <div class="card-image">
+                                <a href="#"><img class="responsive-img image-profile-picture-css" src="@profilePicture" onerror="transformErrorImgToLettersAvatar(this, '@item.DoctorName', '250')" alt=""></a>
+                            </div>
+                            <div class="card-stacked">
+                                <div class="card-content">
+                                    <div class="row">
+                                        <div class="col s12 m3 l3">
+                                            <h6>@item.DoctorName @*<small class="text-muted">(@item.Distance)</small>*@</h6>
+                                            <p class="text-muted">@item.Specialty</p>
+                                            <small class="num-rate pl-0 pt-3" data-rateyo-read-only="true" data-rateyo-rating="@ratingPercentage%"></small>
+                                        </div>
+                                        <div class="col s12 m9 l9">
+                                            <div class="row center">
+                                                @{
+                                                    if (!(item.AppointmentSlots is null))
+                                                    {
+                                                        if (item.AppointmentSlots.Any())
+                                                        {
+                                                            foreach (var apt in item.AppointmentSlots)
+                                                            {
+                                                                <div class="col s12 m6 l6 mb-1">
+                                                                    <a href="javascript:void(0);" onclick="bookAppointmet('@apt.AppointmentId','@apt.StartDate','@apt.EndDate',this)">
+                                                                        <div class="chip">
+                                                                            @apt.StartDate.ToTimezoneFormatDate(_sessionManager.GetTimezoneId()) @apt.StartDate.ToTimezoneFormatTime(_sessionManager.GetTimezoneId()) - @apt.EndDate.ToTimezoneFormatTime(_sessionManager.GetTimezoneId())
+                                                                            @*<i class="close material-icons">attach_money</i>*@
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="col s12 m12 l12 mb-1">
+                                                                <div class="chip red white-text">
+                                                                    No appointment available for today
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="col s12 m12 l12 mb-1">
+                                                            <div class="chip red white-text">
+                                                                No appointment available for today
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-action">
+                                    <div class="row">
+                                        <div class="col s12 m12 l12">
+                                            <a href="@Url.Action(nameof(DoctorsController.Profile),"Doctors", new { id = item.UserId })">
+                                                <i class="material-icons left">visibility</i>
+                                                View Porfile
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col s12">
+                    <div class="card horizontal z-depth-5 padding-5">
+                        <h6 class="red-text center-align">No Therapist found in your state</h6>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col s12">
+                <div class="card horizontal z-depth-5 padding-5">
+                    <h6 class="red-text center">No Therapist found in your state</h6>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col s12">
+            <div class="card horizontal z-depth-5 padding-5">
+                <h6 class="red-text center">No Therapist found in your state</h6>
+            </div>
+        </div>
+    }
+}

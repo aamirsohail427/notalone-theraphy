@@ -1,0 +1,18 @@
+﻿<form asp-action="GetLocationForm" asp-controller="Doctors" method="post" data-ajax="true" data-ajax-success="getLocationFormSuccess(data)">
+    <div class="modal-header mb-2">
+        <h5 class="modal-title center">Who do you want to book the appointment for?</h5>
+    </div>
+    <div class="modal-body text-center">
+        <div class="row">
+            <div class="input-field col s12">
+                <input id="reason" type="text">
+                <label for="reason">Reason for appointment</label>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col s12 center">
+                <button type="submit" class="waves-effect waves-light btn-small mb-1 mr-1 green-success">Submit <i class="material-icons right">send</i></button>
+            </div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,83 @@
+﻿@model List<Telemedicine.Models.Dtos.StoreProcedureDto.GetMyPatients>
+@using Telemedicine.App.Controllers
+@{
+    if (!(Model is null))
+    {
+        if (Model.Any())
+        {
+            <table id="page-length-option" class="striped">
+                <thead>
+                    <tr>
+                        <th class="width-20" colspan="2">Name</th>
+                        <th class="width-10 center">Gender</th>
+                        <th class="width-10 center">Language</th>
+                        <th class="width-40 center">Address</th>
+                        <th class="width-10 center">Distance</th>
+                        <th class="width-10 center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        string profilePictureUrl = "#";
+                        if (!string.IsNullOrEmpty(item.ProfilePictureUrl))
+                            profilePictureUrl = Telemedicine.Utilities.AzureConfigurations.AZURE_BLOB_BASE_URL + item.ProfilePictureUrl;
+
+                        <tr>
+                            <td>
+                                <img class="responsive-img circle z-depth-3" width="50" src="@profilePictureUrl" onerror="transformErrorImgToLettersAvatar(this, '@item.PatientName', '50')" alt="@item.PatientName">
+                            </td>
+                            <td>
+                                @item.SalutationType @item.PatientName
+                            </td>
+                            <td class="width-10 center">@item.GenderType</td>
+                            <td class="width-10 center">@item.PreferredLanguageType</td>
+                            <td class="width-40 center">
+                                @{
+                                    @if (!string.IsNullOrEmpty(item.PrimaryAddress))
+                                    {
+                                        if (!string.IsNullOrEmpty(item.Longitude) && !string.IsNullOrEmpty(item.Longitude))
+                                        {
+                                            <a href="javascript:void(0);" onclick="showLocationOnMap('@item.SalutationType @item.PatientName', '@item.PrimaryAddress', '@item.Latitude', '@item.Longitude')"><span class="teal-text">@item.PrimaryAddress</span></a>
+                                        }
+                                        else
+                                        {
+                                            <span class="blue-text">@item.PrimaryAddress</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="red-text">N/A</span>
+                                    }
+                                }
+                            </td>
+                            <td class="width-10 center">@item.Distance</td>
+                            <td class="width-10 center"><a href="@Url.Action(nameof(PatientsController.Profile),"Patients", new { id = item.UserId })"><i class="material-icons">visibility</i></a></td>
+                        </tr>
+                    }
+                </tbody>
+                @*<tfoot>
+                        <tr>
+                            <th class="width-20 center">Name</th>
+                            <th class="width-10 center">Gender</th>
+                            <th class="width-10 center">Phone</th>
+                            <th class="width-10 center">Bio</th>
+                            <th class="width-10 center">Language</th>
+                            <th class="width-10 center">Address</th>
+                            <th class="width-10 center">Postal Code</th>
+                            <th class="width-10 center">Distance</th>
+                            <th class="width-10 center">Actions</th>
+                        </tr>
+                    </tfoot>*@
+            </table>
+        }
+        else
+        {
+            <p class="text-muted red-text">No Client found</p>
+        }
+    }
+    else
+    {
+        <p class="text-muted red-text">No Client found</p>
+    }
+}

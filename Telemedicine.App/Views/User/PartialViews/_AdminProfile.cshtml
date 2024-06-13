@@ -1,0 +1,97 @@
+﻿@model Telemedicine.App.Models.UserViewModel
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+
+@{
+    int userRoleId = _sessionManager.GetUserRoleId();
+    string username = _sessionManager.GetUsername();
+    string profilePicture = _sessionManager.GetProfilePicture();
+    if (string.IsNullOrEmpty(profilePicture))
+        profilePicture = "#";
+}
+<!-- User Profile Feed -->
+<div class="col s12 m4 l3">
+    <div class="row mt-3">
+        <div class="col s12 grid">
+            <form id="form_profile_picture" asp-action="UpdateProfilePicture" asp-controller="User" method="post" enctype="multipart/form-data">
+                <figure class="effect-zoe z-depth-5">
+                    <img class="responsive-img current-user-profile-picture" width="120" src="@profilePicture" onerror="transformErrorImgToLettersAvatar(this, '@username', '120')" alt="">
+                    <figcaption>
+                        <p class="icon-links">
+                            <label for="ProfilePicture"><i class="material-icons">photo_camera</i></label>
+                            <input id="ProfilePicture" type="file" name="ProfilePicture" style="display:none;" accept=".png, .jpg, .jpeg" onchange="uploadProfilePicture()" data-val="true" />
+                        </p>
+                    </figcaption>
+                </figure>
+            </form>
+        </div>
+    </div>
+    <div class="row mt-10 center">
+        <div class="col s6">
+            <h6><i class="material-icons teal-text">cake</i></h6>
+            <p id="user_date_of_birth" class="m-0"></p>
+        </div>
+        <div class="col s6">
+            <h6><i class="material-icons blue-text">call</i></h6>
+            <p id="user_phone_number" class="m-0"></p>
+        </div>
+    </div>
+    <div class="row mt-3 center">
+        <div class="col s6">
+            <h6><i class="material-icons teal-text">person</i></h6>
+            <p id="user_gender" class="m-0"></p>
+        </div>
+        <div class="col s6">
+            <h6><i class="material-icons blue-text">language</i></h6>
+            <p id="user_preferred_language" class="m-0"></p>
+        </div>
+        <div class="col s12">
+            <hr class="mt-5">
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col s12">
+            <div class="row">
+                <div class="col s12">
+                    <h6>Bio</h6>
+                    <p id="user_bio"></p>
+                </div>
+            </div>
+            <hr class="mt-5">
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col s12">
+            <div id="user_current_location"></div>
+        </div>
+    </div>
+</div>
+<!-- User Post Feed -->
+<div class="col s12 m8 l9">
+    <div class="container">
+        <div class="card user-card-negative-margin z-depth-0" id="feed">
+            <div class="card-content card-border-gray">
+                <div class="row">
+                    <div class="col s12">
+                        <h5>@username's Profile</h5>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col s12">
+                        <ul id="tabs-swipe-demo" class="tabs">
+                            <li class="tab col s12 m3 l3"><a href="#tab_personal" class="active"><i class="material-icons">info_outline</i> Personal</a></li>
+                            <li class="tab col s12 m3 l3"><a href="#tab_reset_password"><i class="material-icons">lock_open</i> Reset Password</a></li>
+                        </ul>
+                        <div id="tab_personal" class="col s12 carousel carousel-item"></div>
+                        <div id="tab_reset_password" class="col s12 carousel carousel-item">
+                            <partial name="~/Views/User/PartialViews/_ResetPassword.cshtml" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Today Highlight -->

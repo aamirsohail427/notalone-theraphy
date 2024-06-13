@@ -1,0 +1,67 @@
+﻿@model List<Telemedicine.Models.Dtos.ResponseDto.DoctorExperienceResponseDto>
+@using Telemedicine.Utilities
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+<div class="section section-data-tInstitutionables">
+    <table class="striped">
+        <thead>
+            <tr>
+                <th class="width-20 left-align">Title</th>
+                <th class="width-20 left-align">Organization</th>
+                <th class="width-20 left-align">Duration</th>
+                <th class="width-30 left-align">Location</th>
+                @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                {
+                    <th class="width-10 right-align">Actions</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                if (!(Model is null))
+                {
+                    if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            string duration = "";
+                            if (item.EndDate.HasValue)
+                                duration = item.StartDate.ToFormatDate() + " - <br>" + item.EndDate.Value.ToFormatDate();
+                            else
+                                duration = item.StartDate.ToFormatDate() + " - Present";
+
+                            <tr>
+                                <td class="width-20 left-align">@item.Title</td>
+                                <td class="width-20 left-align">@item.Organization</td>
+                                <td class="width-20 left-align">@Html.Raw(duration)</td>
+                                <td class="width-30 left-align text-truncate">@item.Address</td>
+                                @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                                {
+                                    <td class="width-10 right-align">
+                                        <a href="javascript:void(0);" class="blue-text" onclick="getExperienceById(@item.DoctorExperienceId)"><i class="material-icons">edit</i></a>
+                                        <a href="javascript:void(0);" class="red-text" onclick="deleteExperienceById(@item.DoctorExperienceId)"><i class="material-icons">delete</i></a>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td class="width-100 center-align" colspan="5">
+                                <span class="text-muted">No Experience Found</span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td class="width-100 center-align" colspan="5">
+                            <span class="text-muted">No Experience Found</span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

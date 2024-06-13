@@ -1,0 +1,128 @@
+﻿@using Telemedicine.App.Controllers
+@using Telemedicine.Utilities
+@model Telemedicine.App.Models.LoginViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<!-- BEGIN: Head-->
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <title>Login - @Configurations.ApplicationName</title>
+    <link rel="apple-touch-icon" href="~/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="~/favicon.ico">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- BEGIN: VENDOR CSS-->
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/vendors.min.css">
+    <!-- END: VENDOR CSS-->
+    <!-- BEGIN: Page Level CSS-->
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/vertical-menu-nav-dark-template/materialize.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/vertical-menu-nav-dark-template/style.css">
+    <link href="~/app-assets/css/custom/custom.css" rel="stylesheet" />
+    @*<link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/vertical-dark-menu-template/materialize.css">
+        <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/vertical-dark-menu-template/style.css">*@
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/login.css">
+    <!-- END: Page Level CSS-->
+</head>
+<!-- END: Head-->
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 1-column gradient-45deg-indigo-light-blue blank-page blank-page" data-open="click" data-menu="vertical-dark-menu" data-col="1-column">
+    <div class="row">
+        <div class="col s12">
+            <div class="container">
+                <div id="login-page">
+                    <div class="z-depth-5 card-panel login-card">
+                        <form class="login-form" asp-action="Login" asp-controller="Login" method="post" asp-route-returnUrl="@ViewBag.ReturnUrl">
+                            <input type="hidden" name="timezone" value="" />
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    @*<img src="~/logo.png" alt="</html>" class="logo ml-3" />*@
+                                    <h5><img src="~/big-logo.jpg" class="img-circle-css" /> @Configurations.ApplicationName</h5>
+                                    <p>Login in to our community !</p>
+                                </div>
+                            </div>
+                            <div class="row margin">
+                                <div class="input-field col s12">
+                                    <i class="material-icons prefix pt-2">person_outline</i>
+                                    <input type="text" asp-for="LoginRequestDto.Email">
+                                    <label asp-for="LoginRequestDto.Email" class="center-align">Email</label>
+                                    <span class="red-text" asp-validation-for="LoginRequestDto.Email"></span>
+                                </div>
+                            </div>
+                            <div class="row margin">
+                                <div class="input-field col s12">
+                                    <i class="material-icons prefix pt-2">lock_outline</i>
+                                    <input type="password" asp-for="LoginRequestDto.Password">
+                                    <label asp-for="LoginRequestDto.Password">Password</label>
+                                    <span class="red-text" asp-validation-for="LoginRequestDto.Password"></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col s12 m12 l12 ml-2 mt-1">
+                                    <p>
+                                        <label>
+                                            <input type="checkbox" checked />
+                                            <span>Remember Me</span>
+                                        </label>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s12">
+                                    <button type="submit" class="btn waves-effect waves-light gradient-45deg-indigo-light-blue ml-2 font-weight-900">Login</button>
+                                </div>
+                            </div>
+                            <div class="row center">
+                                <div class="input-field col s12">
+                                    @Html.ValidationMessage("custom-error", "", new { @class = "red-text" })
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s6 m6 l6">
+                                    <p class="margin medium-small"><a href="@Url.Action(nameof(RegisterController.Index),"Register")">Register Now !</a></p>
+                                </div>
+                                @*<div class="input-field col s6 m6 l6">
+                                    <p class="margin right-align medium-small"><a href="@Url.Action(nameof(ForgotPasswordController.Index),"ForgotPassword")">Forgot password ?</a></p>
+                                </div>*@
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="content-overlay"></div>
+        </div>
+    </div>
+
+    <!-- BEGIN VENDOR JS-->
+    <script src="~/app-assets/js/vendors.min.js"></script>
+    <!-- BEGIN VENDOR JS-->
+    <!-- BEGIN PAGE VENDOR JS-->
+    <!-- END PAGE VENDOR JS-->
+    <!-- BEGIN THEME  JS-->
+    <script src="~/app-assets/js/plugins.js"></script>
+    <script src="~/app-assets/js/search.js"></script>
+    <!-- END THEME  JS-->
+    <!-- BEGIN PAGE LEVEL JS-->
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js" integrity="sha256-ZsWP0vT+akWmvEMkNYgZrPHKU9Ke8nYBPC3dqONp1mY=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.31/moment-timezone-with-data.js" integrity="sha256-KKy9k3K93GLu75/3rRJIN0zN2yJzueo7QA5rLBTJOWU=" crossorigin="anonymous"></script>
+    <!-- END PAGE LEVEL JS-->
+    <script type="text/javascript">
+        var timezone = "";
+        $(document).ready(function () {
+            timezone = moment.tz.guess();
+            if (!(timezone === '')) {
+                $("input[name='timezone']").val(timezone);
+            }
+        });
+    </script>
+</body>
+</html>

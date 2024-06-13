@@ -1,0 +1,154 @@
+﻿@model Telemedicine.App.Models.UserViewModel
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+@{
+    int userRoleId = _sessionManager.GetUserRoleId();
+}
+<form id="form_personal_information" asp-action="UpdateProfile" asp-controller="User" method="post" class="mt-1" enctype="multipart/form-data">
+    <input type="hidden" asp-for="UserRequestDto.UserId" />
+    <input type="hidden" asp-for="UserRequestDto.UserRoleId" />
+    <input type="hidden" asp-for="UserRequestDto.CreatedDateTime" />
+    <input type="hidden" asp-for="UserRequestDto.Longitude" />
+    <input type="hidden" asp-for="UserRequestDto.Latitude" />
+    <div class="row">
+        <div class="input-field col s12 m4 l4">
+            <select class="browser-default" asp-for="UserRequestDto.SalutationTypeId" asp-items="Model.SalutationTypes"></select>
+        </div>
+        @if (userRoleId == Convert.ToInt32(UserRoleTypes.Therapist))
+        {
+            <div class="input-field col s12 m4 l4">
+                <select class="browser-default" asp-for="UserRequestDto.SpecialtyLookupId" asp-items="Model.SpecialtyLookups"></select>
+            </div>
+        }
+    </div>
+    <div class="row">
+        <div class="input-field col s12 m4 l4">
+            <input type="text" asp-for="UserRequestDto.FirstName">
+            <label class="center-align" asp-for="UserRequestDto.FirstName">First Name <span class="red-text">*</span></label>
+            <span class="red-text" asp-validation-for="UserRequestDto.FirstName"></span>
+        </div>
+        <div class="input-field col s12 m4 l4">
+            <input type="text" asp-for="UserRequestDto.MiddleName">
+            <label class="center-align" asp-for="UserRequestDto.MiddleName">Middle Name (Optional)</label>
+            <span class="red-text" asp-validation-for="UserRequestDto.MiddleName"></span>
+        </div>
+        <div class="input-field col s12 m4 l4">
+            <input type="text" asp-for="UserRequestDto.LastName">
+            <label class="center-align" asp-for="UserRequestDto.LastName">Last Name <span class="red-text">*</span></label>
+            <span class="red-text" asp-validation-for="UserRequestDto.LastName"></span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="input-field col s12 m4 l4">
+            <input type="text" class="date-formatter" placeholder="MM/DD/YYYY" asp-for="UserRequestDto.DateOfBirth" asp-format="{0:MM/dd/yyyy}">
+            <label class="center-align" asp-for="UserRequestDto.DateOfBirth">Date of Birth</label>
+            <span class="red-text" asp-validation-for="UserRequestDto.DateOfBirth"></span>
+        </div>
+        <div class="input-field col s12 m4 l4">
+            <select class="browser-default" asp-for="UserRequestDto.GenderId" asp-items="Model.GenderTypes"></select>
+        </div>
+        <div class="input-field col s12 m4 l4">
+            <input type="text" class="phone-formatter" placeholder="(999) 999-9999" asp-for="UserRequestDto.Phone">
+            <label class="center-align" asp-for="UserRequestDto.Phone">Mobile Number</label>
+            <span class="red-text" asp-validation-for="UserRequestDto.Phone"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="input-field col s12 m8 l8">
+            <input type="text" readonly onclick="chooseLocation()" asp-for="UserRequestDto.PrimaryAddress">
+            <label class="center-align" asp-for="UserRequestDto.PrimaryAddress">Address</label>
+            <span class="red-text" asp-validation-for="UserRequestDto.PrimaryAddress"></span>
+        </div>
+        <div class="input-field col s12 m4 l4">
+            <input type="text" asp-for="UserRequestDto.PostalCode">
+            <label class="center-align" asp-for="UserRequestDto.PostalCode">Postal Code</label>
+            <span class="red-text" asp-validation-for="UserRequestDto.PostalCode"></span>
+        </div>
+    </div>
+    @if (userRoleId == Convert.ToInt32(UserRoleTypes.Client))
+    {
+        <div class="row">
+            <div class="input-field col s12">
+                <select class="browser-default" asp-for="PatientStateId" asp-items="Model.States"></select>
+                <label class="center-align">Select State</label>
+            </div>
+        </div>
+    }
+    <div class="row">
+        <div class="input-field col s12">
+            <input type="text" asp-for="UserRequestDto.Bio">
+            <label class="center-align" asp-for="UserRequestDto.Bio">Bio</label>
+            <span class="red-text" asp-validation-for="UserRequestDto.Bio"></span>
+        </div>
+    </div>
+    @if (userRoleId == Convert.ToInt32(UserRoleTypes.Therapist))
+    {
+        if (string.IsNullOrEmpty(Model.UserRequestDto.LicensedUrl))
+        {
+            <div class="row">
+                <div class="input-field col s12">
+                    <div class="file-field input-field">
+                        <div class="btn green-success">
+                            <span>File</span>
+                            <input type="file" asp-for="File">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text" placeholder="State(s) Licensed to Practice">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            string fileUrl = AzureConfigurations.AZURE_BLOB_BASE_URL + Model.UserRequestDto.LicensedUrl;
+            string fileName = System.IO.Path.GetFileName(fileUrl);
+
+            <div class="row">
+                <div class="col s12">
+                    <div class="section section-data-tables">
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th class="width-90 left-align">File</th>
+                                    <th class="width-10 right-align">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="width-20 left-align">@fileName</td>
+                                    <td class="width-10 right-align">
+                                        <a href="@fileUrl" class="blue-text" download><i class="material-icons">visibility</i></a>
+                                        <a href="javascript:void(0);" class="red-text" onclick="deleteLicenseById(@Model.UserRequestDto.UserId)"><i class="material-icons">delete</i></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="input-field col s12">
+                <select class="select2-size-sm browser-default select2" multiple="multiple" asp-for="DoctorLicensedStates" asp-items="Model.States" autocomplete="off"></select>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="input-field col s12 m4 l4">
+            <select class="browser-default" asp-for="UserRequestDto.PreferredLanguageTypeId" asp-items="Model.PreferredLanguageTypes"></select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="input-field col s12">
+            <button class="btn cyan waves-effect waves-light right gradient-45deg-indigo-light-blue font-weight-900" type="submit">
+                Save Changes
+                <i class="material-icons right">send</i>
+            </button>
+        </div>
+    </div>
+</form>

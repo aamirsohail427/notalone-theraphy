@@ -1,0 +1,29 @@
+﻿@model Telemedicine.App.Models.RegisterViewModel
+@using Telemedicine.App.Controllers
+@using Telemedicine.Utilities
+<div class="z-depth-5 card-panel register-card">
+    <form class="login-form" asp-action="GetRegistrationForm" asp-controller="Register" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="getRegistrationForm(data)">
+        <div class="row">
+            <div class="input-field col s12">
+                @*<img src="~/logo.png" alt="KareiiLink" class="logo ml-3" />*@
+                <h5><img src="~/big-logo.jpg" class="img-circle-css" /> @Configurations.ApplicationName</h5>
+                <p>Are you Therapist or Client?</p>
+            </div>
+        </div>
+        <div class="row margin">
+            <div class="input-field col s12">
+                <select class="browser-default" asp-for="UserRoleId" asp-items="Model.UserRoles"></select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12">
+                <button type="submit" class="btn waves-effect waves-light gradient-45deg-indigo-light-blue ml-2 font-weight-900">Next</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12">
+                <p class="margin medium-small"><a href="@Url.Action(nameof(LoginController.Index),"Login")">Already have an account? Login</a></p>
+            </div>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,419 @@
+﻿@using Telemedicine.App.Controllers
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+
+@{
+    string username = _sessionManager.GetUsername();
+}
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<!-- BEGIN: Head-->
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <title>@ViewData["Title"] - @Configurations.ApplicationName</title>
+    <link rel="apple-touch-icon" href="~/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="~/favicon.ico">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- BEGIN: VENDOR CSS-->
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/vendors.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/animate-css/animate.css">
+    <!-- END: VENDOR CSS-->
+    <!-- BEGIN: Page Level CSS-->
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/vertical-menu-nav-dark-template/materialize.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/vertical-menu-nav-dark-template/style.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/sweetalert/sweetalert.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.css">
+    @*<link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/vertical-dark-menu-template/materialize.css">
+        <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/vertical-dark-menu-template/style.css">*@
+    <!-- END: Page Level CSS-->
+    <!-- BEGIN: Custom CSS-->
+    <link href="~/app-assets/css/custom/custom.css" rel="stylesheet" />
+    <style type="text/css">
+        .brand-sidebar .logo-wrapper a.brand-logo img {
+            max-width: 60px !important;
+            width: 100%;
+            max-height: 60px !important;
+            height: 100%;
+            vertical-align: middle;
+            /*-moz-border-radius: 50%;
+            -webkit-border-radius: 50%;*/
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+
+        .brand-sidebar .brand-logo {
+            padding: 10px 12px 0px 10px;
+        }
+
+        .nav-collapsed .brand-sidebar .brand-logo {
+            padding: 0;
+        }
+
+        .navbar .navbar-main .nav-wrapper .navbar-list li a span.avatar-status.avatar-online img {
+            max-width: 40px !important;
+            min-width: 40px !important;
+            width: 100%;
+            max-height: 40px !important;
+            min-height: 40px !important;
+            height: 100% !important;
+            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+
+        .navbar #notifications-dropdown li > a {
+            font-size: 14px;
+        }
+    </style>
+    <link href="~/pickadate.js-3.6.2/lib/themes/classic.css" rel="stylesheet" />
+    <link href="~/pickadate.js-3.6.2/lib/themes/classic.date.css" rel="stylesheet" />
+    <link href="~/pickadate.js-3.6.2/lib/themes/classic.time.css" rel="stylesheet" />
+    <style>
+        .picker__select--year, .picker__select--month {
+            display: inline-block;
+            height: 3rem;
+            font-size: 14px;
+        }
+    </style>
+    @RenderSection("styles", required: false)
+    <!-- END: Custom CSS-->
+    <script src="~/app-assets/js/vendors.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js" integrity="sha256-PAC000yuHt78nszJ2RO0OiDMu/uLzPLRlYTk8J3AO10=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.2.2/jquery.form.min.js" integrity="sha256-2Pjr1OlpZMY6qesJM68t2v39t+lMLvxwpa8QlRjJroA=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js" integrity="sha256-+BEKmIvQ6IsL8sHcvidtDrNOdZO3C9LtFPtF2H0dOHI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js" integrity="sha256-9GycpJnliUjJDVDqP0UEu/bsm9U+3dnQUH8+3W10vkY=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.26.0/moment.min.js" integrity="sha256-5oApc/wMda1ntIEK4qoWJ4YItnV4fBHMwywunj8gPqc=" crossorigin="anonymous"></script>
+    <script src="~/app-assets/js/custom/custom-script.js"></script>
+</head>
+<!-- END: Head-->
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-menu-nav-dark preload-transitions 2-columns   " data-open="click" data-menu="vertical-menu-nav-dark" data-col="2-columns">
+    <!--Opentok Session-->
+    <input type="hidden" data-user-name="@_sessionManager.GetUsername()" data-user-id="@_sessionManager.GetUserId()" data-session-id="@TokboxConfigurations.GLOBAL_SESSION_ID" data-api-key="@TokboxConfigurations.API_KEY" data-token-id="@_sessionManager.GetTokenId()" id="chat-credentials" />
+
+    <!-- BEGIN: Header-->
+    <partial name="~/Views/Shared/_Header.cshtml" />
+    <!-- END: Header-->
+    <ul class="display-none" id="default-search-main">
+        <li class="auto-suggestion-title">
+            <a class="collection-item" href="#">
+                <h6 class="search-title">FILES</h6>
+            </a>
+        </li>
+        <li class="auto-suggestion">
+            <a class="collection-item" href="#">
+                <div class="display-flex">
+                    <div class="display-flex align-item-center flex-grow-1">
+                        <div class="avatar"><img src="../../../app-assets/images/icon/pdf-image.png" width="24" height="30" alt="sample image"></div>
+                        <div class="member-info display-flex flex-column"><span class="black-text">Two new item submitted</span><small class="grey-text">Marketing Manager</small></div>
+                    </div>
+                    <div class="status"><small class="grey-text">17kb</small></div>
+                </div>
+            </a>
+        </li>
+        <li class="auto-suggestion">
+            <a class="collection-item" href="#">
+                <div class="display-flex">
+                    <div class="display-flex align-item-center flex-grow-1">
+                        <div class="avatar"><img src="../../../app-assets/images/icon/doc-image.png" width="24" height="30" alt="sample image"></div>
+                        <div class="member-info display-flex flex-column"><span class="black-text">52 Doc file Generator</span><small class="grey-text">FontEnd Developer</small></div>
+                    </div>
+                    <div class="status"><small class="grey-text">550kb</small></div>
+                </div>
+            </a>
+        </li>
+        <li class="auto-suggestion">
+            <a class="collection-item" href="#">
+                <div class="display-flex">
+                    <div class="display-flex align-item-center flex-grow-1">
+                        <div class="avatar"><img src="../../../app-assets/images/icon/xls-image.png" width="24" height="30" alt="sample image"></div>
+                        <div class="member-info display-flex flex-column"><span class="black-text">25 Xls File Uploaded</span><small class="grey-text">Digital Marketing Manager</small></div>
+                    </div>
+                    <div class="status"><small class="grey-text">20kb</small></div>
+                </div>
+            </a>
+        </li>
+        <li class="auto-suggestion">
+            <a class="collection-item" href="#">
+                <div class="display-flex">
+                    <div class="display-flex align-item-center flex-grow-1">
+                        <div class="avatar"><img src="../../../app-assets/images/icon/jpg-image.png" width="24" height="30" alt="sample image"></div>
+                        <div class="member-info display-flex flex-column"><span class="black-text">Anna Strong</span><small class="grey-text">Web Designer</small></div>
+                    </div>
+                    <div class="status"><small class="grey-text">37kb</small></div>
+                </div>
+            </a>
+        </li>
+        <li class="auto-suggestion-title">
+            <a class="collection-item" href="#">
+                <h6 class="search-title">MEMBERS</h6>
+            </a>
+        </li>
+        <li class="auto-suggestion">
+            <a class="collection-item" href="#">
+                <div class="display-flex">
+                    <div class="display-flex align-item-center flex-grow-1">
+                        <div class="avatar"><img class="circle" src="../../../app-assets/images/avatar/avatar-7.png" width="30" alt="sample image"></div>
+                        <div class="member-info display-flex flex-column"><span class="black-text">John Doe</span><small class="grey-text">UI designer</small></div>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="auto-suggestion">
+            <a class="collection-item" href="#">
+                <div class="display-flex">
+                    <div class="display-flex align-item-center flex-grow-1">
+                        <div class="avatar"><img class="circle" src="../../../app-assets/images/avatar/avatar-8.png" width="30" alt="sample image"></div>
+                        <div class="member-info display-flex flex-column"><span class="black-text">Michal Clark</span><small class="grey-text">FontEnd Developer</small></div>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="auto-suggestion">
+            <a class="collection-item" href="#">
+                <div class="display-flex">
+                    <div class="display-flex align-item-center flex-grow-1">
+                        <div class="avatar"><img class="circle" src="../../../app-assets/images/avatar/avatar-10.png" width="30" alt="sample image"></div>
+                        <div class="member-info display-flex flex-column"><span class="black-text">Milena Gibson</span><small class="grey-text">Digital Marketing</small></div>
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li class="auto-suggestion">
+            <a class="collection-item" href="#">
+                <div class="display-flex">
+                    <div class="display-flex align-item-center flex-grow-1">
+                        <div class="avatar"><img class="circle" src="../../../app-assets/images/avatar/avatar-12.png" width="30" alt="sample image"></div>
+                        <div class="member-info display-flex flex-column"><span class="black-text">Anna Strong</span><small class="grey-text">Web Designer</small></div>
+                    </div>
+                </div>
+            </a>
+        </li>
+    </ul>
+    <ul class="display-none" id="page-search-title">
+        <li class="auto-suggestion-title">
+            <a class="collection-item" href="#">
+                <h6 class="search-title">PAGES</h6>
+            </a>
+        </li>
+    </ul>
+    <ul class="display-none" id="search-not-found">
+        <li class="auto-suggestion"><a class="collection-item display-flex align-items-center" href="#"><span class="material-icons">error_outline</span><span class="member-info">No results found.</span></a></li>
+    </ul>
+
+
+
+    <!-- BEGIN: SideNav-->
+    <partial name="~/Views/Shared/_SideNav.cshtml" />
+    <!-- END: SideNav-->
+    <!-- BEGIN: Page Main-->
+    <div id="main">
+        <div class="row">
+            @RenderBody()
+        </div>
+        <!-- START RIGHT SIDEBAR NAV -->
+        @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist) || _sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+        {
+            <partial name="~/Views/Shared/_RightSidebarNav.cshtml" />
+        }
+        <!-- END RIGHT SIDEBAR NAV -->
+
+    </div>
+    <!-- END: Page Main-->
+    <!-- BEGIN: Footer-->
+
+    <footer class="page-footer footer footer-static footer-light navbar-border navbar-shadow">
+        <div class="footer-copyright">
+            <div class="container"><span>&copy; @DateTime.UtcNow.Year <a href="javascript:void(0);" target="_blank">Oxford Epidemiology Services LLC.</a> All rights reserved.</span><span class="right hide-on-small-only">Designed and Developed by <a href="javascript:void(0);">Oxford Epidemiology Services LLC</a></span></div>
+        </div>
+    </footer>
+
+    <!-- END: Footer-->
+    <div id="ajax_preloader">
+        <div class="preloader-container">
+            <div class="pre-wrapper">
+                <div class="card">
+                    <div class="card-content center-align">
+                        <div class="preloader-wrapper big active">
+                            <div class="spinner-layer spinner-blue-only">
+                                <div class="circle-clipper left">
+                                    <div class="circle"></div>
+                                </div><div class="gap-patch">
+                                    <div class="circle"></div>
+                                </div><div class="circle-clipper right">
+                                    <div class="circle"></div>
+                                </div>
+                            </div>
+                        </div>
+                        @*<p class="text-uppercase green-text mt-5"></p>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/app-assets/js/plugins.js"></script>
+    <script src="~/app-assets/js/search.js"></script>
+    <script src="~/app-assets/js/scripts/css-animation.js"></script>
+    <script src="~/app-assets/vendors/sweetalert/sweetalert.min.js"></script>
+    <script src="~/app-assets/vendors/formatter/jquery.formatter.min.js"></script>
+    <script src="~/app-assets/js/scripts/advance-ui-toasts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.js"></script>
+    <script src="https://static.opentok.com/v2/js/opentok.min.js"></script>
+    <script src="~/chat/js/chat-notification.js"></script>
+    <!-- END THEME  JS-->
+    <script type="text/javascript">
+        $(function () {
+            $('.modal').modal();
+        });
+        $(document).ready(function () {
+            getNotifications();
+        });
+        function getNotifications() {
+            $.ajax({
+                url: '@Url.Action("GetAll", "Notification")',
+                type: 'GET',
+                beforeSend: function (xhr) {
+                    $("#ajax_preloader").hide();
+                },
+                success: function (data) {
+                    $('#notifications-dropdown').html(data);
+                    var notificationCount = $('#notifications-dropdown span.new.badge').html();
+                    if (+notificationCount > 0) {
+                        $('a[data-target="notifications-dropdown"]').html('<i class="material-icons">notifications_none<small class="notification-badge">' + notificationCount + '</small></i>');
+                        $('a[data-target="notifications-dropdown"]').attr('onclick', 'readNotification()');
+                    } else {
+                        $('a[data-target="notifications-dropdown"]').html('<i class="material-icons">notifications_none</i>');
+                    }
+                },
+                error: function (request, error) {
+                    alert("Request: " + JSON.stringify(request));
+                }
+            });
+        }
+        function readNotification() {
+            $.ajax({
+                url: '@Url.Action("ReadAll", "Notification")',
+                type: 'GET',
+                beforeSend: function (xhr) {
+                    $("#ajax_preloader").hide();
+                },
+                success: function (data) {
+                    $('a[data-target="notifications-dropdown"] .notification-badge').remove();
+                    $('#notifications-dropdown .new.badge').remove();
+                    //$('#notifications-dropdown').html(data);
+                    //var notificationCount = $('#notifications-dropdown span.new.badge').html();
+                    //if (+notificationCount > 0) {
+                    //    $('a[data-target="notifications-dropdown"]').html('<i class="material-icons">notifications_none<small class="notification-badge">' + notificationCount + '</small></i>');
+                    //    $('a[data-target="notifications-dropdown"]').attr('onclick', 'readNotification()');
+                    //} else {
+                    //    $('a[data-target="notifications-dropdown"]').html('<i class="material-icons">notifications_none</i>');
+                    //}
+                },
+                error: function (request, error) {
+                    alert("Request: " + JSON.stringify(request));
+                }
+            });
+        }
+        function resetForm(formId) {
+            $('' + formId + ' input').val('');
+        }
+        function populateForm(frm, data, frmName) {
+            $.each(data, function (key, value) {
+                var $ctrl = $('[name="' + frmName + key.charAt(0).toUpperCase() + key.slice(1) + '"]', frm);
+
+                if ($ctrl.is('select')) {
+                    $("option", $ctrl).each(function () {
+                        if (this.value === value) { this.selected = true; }
+                        $(this).val(this.value).trigger("change");
+                    });
+                } else if ($ctrl.is('textarea')) {
+                    $ctrl.val(value);
+                }
+                else {
+
+                    switch ($ctrl.attr("type")) {
+                        case "text": case "hidden": case "textarea":
+                            $ctrl.val(value);
+                            $("label[for='" + $ctrl[0].id + "']").addClass('active');
+                            break;
+                        case "radio": case "checkbox":
+                            $ctrl.each(function () {
+                                if ($(this).attr('value') === "" + value + "") { $(this).prop("checked", value); $(this).trigger("change"); }
+                            });
+                            break;
+                    }
+                }
+            });
+        }
+
+    </script>
+    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist) || _sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                getUpcomingAppointments();
+                var date = new Date();
+
+                setTimeout(function () {
+                    setInterval(getUpcomingAppointments, 60000);
+                    getUpcomingAppointments();
+                }, (60 - date.getSeconds()) * 1000);
+            });
+            function blink() {
+                $('.blink').fadeOut(500);
+                $('.blink').fadeIn(500);
+            }
+            function getUpcomingAppointments() {
+                $.ajax({
+                    type: "GET",
+                    beforeSend: function () {
+                        $("#ajax_preloader").hide();
+                    },
+                    url: "@Url.Action("GetUpcomings", "Appointments")",
+                    dataType: 'json',
+                    cache: false,
+                    global: true,
+                    success: function (data) {
+                        //do something
+                        $("#up_coming_appointment").html('');
+                        if (data.status === 1) {
+                            if ((data.data === null) || (data.data.length === 0)) return false;
+
+                            var appointment = data.data[0];
+                            if ('@_sessionManager.GetRole()' === '@UserRoleTypeStrings.Therapist') {
+                                var template = "<a href='../Consultation/Connect/" + appointment.appointmentId + "'><div class='chip red white-text'><p class='blink m-0'>Your appointment with patient " + appointment.user + " from " + appointment.startTime + " - " + appointment.endTime + " has been started. Click to Join Room</p></div></a>";
+                                $("#up_coming_appointment").html(template);
+                                setInterval(blink, 1000);
+                            }
+                            if ('@_sessionManager.GetRole()' === '@UserRoleTypeStrings.Client') {
+                                var template = "<a href='../Consultation/Connect/" + appointment.appointmentId + "'><div class='chip red white-text'><p class='blink m-0'>Your appointment with doctor " + appointment.createdBy + " from " + appointment.startTime + " - " + appointment.endTime + " has been started. Click to Join Room</p></div></a>";
+                                $("#up_coming_appointment").html(template);
+                                setInterval(blink, 1000);
+                            }
+                        }
+                    }
+                });
+                //$.get("").done(function (data) {
+
+                //});
+            }
+        </script>
+    }
+    <script src="~/pickadate.js-3.6.2/lib/picker.js"></script>
+    <script src="~/pickadate.js-3.6.2/lib/picker.date.js"></script>
+    <script src="~/pickadate.js-3.6.2/lib/picker.time.js"></script>
+    <!-- BEGIN: Custom JS-->
+    @RenderSection("scripts", required: false)
+    <!-- END: Custom JS-->
+</body>
+</html>

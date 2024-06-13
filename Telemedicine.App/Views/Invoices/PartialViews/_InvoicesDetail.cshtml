@@ -1,0 +1,91 @@
+﻿@model List<Telemedicine.Models.Dtos.ResponseDto.InvoiceResponseDto>
+@using Telemedicine.Utilities
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+@{
+    if (!(Model is null))
+    {
+        if (Model.Any())
+        {
+            <table class="striped">
+                <thead>
+                    <tr>
+                        <th class="width-10 left-align">Invoice#</th>
+                        <th class="width-10 center">Amount</th>
+                        <th class="width-10 left-align">Appointment</th>
+                        <th class="width-10 left-align">Time</th>
+                        <th class="width-20" colspan="2">Doctor Name</th>
+                        <th class="width-30 left-align">Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        string profilePictureUrl = "#";
+                        string appointmentDate = "";
+                        string appointmentTime = "";
+                        string username = "";
+                        string phone = "";
+                        string address = "";
+                        string latitude = "";
+                        string longitude = "";
+                        if (!(item.Appointment is null))
+                        {
+                            appointmentDate = item.Appointment.StartDate.ToTimezoneFormatDate(_sessionManager.GetTimezoneId());
+                            appointmentTime = item.Appointment.StartDate.ToTimezoneFormatTime(_sessionManager.GetTimezoneId()) + " - " + item.Appointment.EndDate.ToTimezoneFormatTime(_sessionManager.GetTimezoneId());
+
+                            if (!(item.Appointment.CreatedBy is null))
+                            {
+                                if (!string.IsNullOrEmpty(item.Appointment.CreatedBy.ProfilePictureUrl))
+                                    profilePictureUrl = AzureConfigurations.AZURE_BLOB_BASE_URL + item.Appointment.CreatedBy.ProfilePictureUrl;
+
+                                username = item.Appointment.CreatedBy.FirstName + ' ' + item.Appointment.CreatedBy.MiddleName + ' ' + item.Appointment.CreatedBy.LastName;
+                                phone = item.Appointment.CreatedBy.Phone;
+                                address = item.Appointment.CreatedBy.PrimaryAddress;
+                                latitude = item.Appointment.CreatedBy.Latitude;
+                                longitude = item.Appointment.CreatedBy.Longitude;
+                            }
+                        }
+
+                        <tr>
+                            <td class="width-10 left-align">@item.ReferenceNumber</td>
+                            <td class="width-10 center">$@item.AmountPaid</td>
+                            <td class="width-10 left-align">@appointmentDate</td>
+                            <td class="width-10 left-align">@appointmentTime</td>
+                            <td>
+                                <img class="responsive-img circle z-depth-3" width="50" src="@profilePictureUrl" onerror="transformErrorImgToLettersAvatar(this, '@username', '50')" alt="@username">
+                            </td>
+                            <td>@username</td>
+                            <td class="width-40 left-align">
+                                @{
+                                    @if (!string.IsNullOrEmpty(address))
+                                    {
+                                        if (!string.IsNullOrEmpty(latitude) && !string.IsNullOrEmpty(longitude))
+                                        {
+                                            <a href="javascript:void(0);" onclick="showLocationOnMap('@username', '@address', '@latitude', '@longitude')"><span class="teal-text">@address</span></a>
+                                        }
+                                        else
+                                        {
+                                            <span class="blue-text">@address</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="red-text">N/A</span>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted red-text">No invoice found</p>
+        }
+    }
+    else
+    {
+        <p class="text-muted red-text">No invoice found</p>
+    }
+}

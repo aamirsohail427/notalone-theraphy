@@ -1,0 +1,719 @@
+﻿@model Telemedicine.App.Models.AppointmentViewModel
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+@using Telemedicine.App.Controllers
+@{
+    int userRoleId = _sessionManager.GetUserRoleId();
+}
+@{
+    ViewData["Title"] = "Appointments";
+}
+@section styles{
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/fullcalendar/css/fullcalendar.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/fullcalendar/daygrid/daygrid.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/fullcalendar/timegrid/timegrid.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/app-calendar.css">
+    @*<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" integrity="sha512-liDnOrsa/NzR+4VyWQ3fBzsDBzal338A1VfUpQvAcdt+eL88ePCOd3n9VQpdA0Yxi4yglmLy/AmH+Lrzmn0eMQ==" crossorigin="anonymous" />*@
+    <style>
+        /*.fc .fc-button {
+            border-color: #FFDBD9 !important;
+            background: #FFDBD9 !important;
+            color: #333333 !important;
+        }*/
+
+        /*.datepicker-modal {
+            z-index: 99999;
+        }*/
+    </style>
+    <style>
+        /*#calendar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }*/
+
+        /*.fc-header-toolbar {*/
+        /*
+        the calendar will be butting up against the edges,
+        but let's scoot in the header's buttons
+        */
+        /*padding-top: 1em;
+            padding-left: 1em;
+            padding-right: 1em;
+        }*/
+    </style>
+}
+@section scripts{
+    <script src="~/app-assets/vendors/fullcalendar/lib/moment.min.js"></script>
+    <script src="~/app-assets/vendors/fullcalendar/js/fullcalendar.min.js"></script>
+    <script src="~/app-assets/vendors/fullcalendar/daygrid/daygrid.min.js"></script>
+    <script src="~/app-assets/vendors/fullcalendar/timegrid/timegrid.min.js"></script>
+    <script src="~/app-assets/vendors/fullcalendar/interaction/interaction.min.js"></script>
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js" integrity="sha512-iusSCweltSRVrjOz+4nxOL9OXh2UA0m8KdjsX8/KUUiJz+TCNzalwE0WE6dYTfHDkXuGuHq3W9YIhDLN7UNB0w==" crossorigin="anonymous"></script>*@
+    <script src="~/app-assets/vendors/formatter/jquery.formatter.min.js"></script>
+
+    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+    {
+        <script type="text/javascript">
+            var selectedInterval = 5;
+            $(document).ready(function () {
+                populateInterval('#CreateSlotRequestDto_Interval');
+                PopulateAppointments();
+                $('#CreateSlotRequestDto_Date').pickadate({
+                    format: 'mm/dd/yyyy',
+                    onStart: function () {
+                        this.set("min", moment());
+                        this.set("select", moment());
+                    },
+                    onSet: function (context) {
+                        if (this.$node.val() === '' || this.$node.val() === undefined) return false;
+
+                        populateTimepicker('', '#CreateSlotRequestDto_StartTime');
+                    }
+                });
+                $("#CreateSlotRequestDto_StartTime").on('change', function (e) {
+                    populateTimepicker(e.currentTarget.value, '#CreateSlotRequestDto_EndTime')
+                });
+
+            });
+            function deleteAppointmentById(id) {
+                $.confirm({
+                    title: 'Alert',
+                    content: 'Are you sure you want to delete this appointment slot?',
+                    buttons: {
+                        Yes: {
+                            text: 'Yes',
+                            btnClass: 'blue',
+                            action: function () {
+                                $.post("../Appointments/DeleteAppointment", { id: id }).done(function (data) {
+                                    if (data.status === 1) {
+                                        M.toast({ html: data.message, classes: 'teal' });
+                                        $('#modal_appointment_detail').modal("close");
+                                        PopulateAppointments();
+                                    } else {
+                                        M.toast({ html: data.message, classes: 'red' });
+                                    }
+                                });
+                            }
+                        },
+                        No: {
+                            text: 'No',
+                            btnClass: 'red',
+                        }
+                    }
+                });
+            }
+            function cancelAppointmentById(id) {
+                $.confirm({
+                    title: 'Alert',
+                    content: 'Are you sure you want to cancel this appointment slot?',
+                    buttons: {
+                        Yes: {
+                            text: 'Yes',
+                            btnClass: 'blue',
+                            action: function () {
+                                $.post("../Appointments/CancelAppointment", { id: id }).done(function (data) {
+                                    if (data.status === 1) {
+                                        M.toast({ html: data.message, classes: 'teal' });
+                                        $('#modal_appointment_detail').modal("close");
+                                        PopulateAppointments();
+                                    } else {
+                                        M.toast({ html: data.message, classes: 'red' });
+                                    }
+                                });
+                            }
+                        },
+                        No: {
+                            text: 'No',
+                            btnClass: 'red',
+                        }
+                    }
+                });
+            }
+            function changeInterval() {
+                selectedInterval = $('#CreateSlotRequestDto_Interval').val();
+
+                populateTimepicker('', '#CreateSlotRequestDto_StartTime');
+                //var setMin = moment($('#CreateSlotRequestDto_StartTime').val(), 'hh:mm A').add(selectedInterval, 'minutes').format('hh:mm A');
+                //$('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set('min', setMin);
+                //$('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set('select', setMin);
+            }
+            function initAppointmentScheduler() {
+                $('#CreateSlotRequestDto_StartTime').pickatime({
+                    format: 'h:i A',
+                    formatSubmit: 'h:i A',
+                    interval: 5,
+                    onStart: function () {
+                        this.set("interval", selectedInterval);
+                        this.set("min", moment());
+                        this.set("select", moment());
+                    },
+                    onSet: function () {
+                        var max = [14, 0];
+                        var disable = [
+                            [0, 0]
+                        ];
+                        $('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set("max", max);
+                        $('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set("disable", disable);
+                        $('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set('interval', selectedInterval);
+                        var setMin = moment($('#CreateSlotRequestDto_StartTime').val(), 'hh:mm A').add(selectedInterval, 'minutes').format('hh:mm A');
+                        $('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set('min', setMin);
+                        $('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set('select', setMin);
+                    }
+                });
+                $('#CreateSlotRequestDto_EndTime').pickatime({
+                    format: 'h:i A',
+                    formatSubmit: 'h:i A'
+                });
+                $('#CreateSlotRequestDto_Date').pickadate({
+                    format: 'mm/dd/yyyy',
+                    onStart: function () {
+                        this.set("min", moment());
+                        this.set("select", moment());
+                    },
+                    onSet: function (context) {
+                        if (this.$node.val() === '' || this.$node.val() === undefined) return false;
+
+                        var date = this.$node.val();
+                        var isSameDay = moment(date).isSame(moment(), 'day');
+                        $('#CreateSlotRequestDto_StartTime').pickatime().pickatime('picker').set("interval", selectedInterval);
+                        $('#CreateSlotRequestDto_StartTime').pickatime().pickatime('picker').set("interval", selectedInterval);
+                        if (isSameDay === true) {
+                            $('#CreateSlotRequestDto_StartTime').pickatime().pickatime('picker').set("min", moment());
+                            $('#CreateSlotRequestDto_StartTime').pickatime().pickatime('picker').set("select", moment());
+                        } else {
+                            $('#CreateSlotRequestDto_StartTime').pickatime().pickatime('picker').set("min", moment('12:00 AM', 'hh:mm A').format('hh:mm A'));
+                            $('#CreateSlotRequestDto_StartTime').pickatime().pickatime('picker').set("select", moment('12:00 AM', 'hh:mm A').format('hh:mm A'));
+                        }
+                        var setMin = moment($('#CreateSlotRequestDto_StartTime').val(), 'hh:mm A').add(selectedInterval, 'minutes').format('hh:mm A');
+                        $('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set('min', setMin);
+                        $('#CreateSlotRequestDto_EndTime').pickatime().pickatime('picker').set('select', setMin);
+                    }
+                });
+            }
+            function PopulateAppointments() {
+                var appointments = [];
+                $.get("../Appointments/GetAppointments").done(function (data) {
+                    $.each(data.data, function (index, object) {
+                        var startDateTime = moment(object.startDate).format('YYYY-MM-DD HH:mm');
+                        var endDateTime = moment(object.endDate).format('YYYY-MM-DD HH:mm');
+
+                        var green = "#009688";
+                        var grey = "#e5e5e5";
+                        var red = "#f44336";
+                        var white = "#fff";
+                        var black = "#000";
+
+                        var eventBackgroundColor = "";
+                        var eventBorderColor = "";
+                        var eventTextColor = "";
+                        var eventTitle = "";
+                        var patientName = '';
+
+                        if (object.user === null) {
+                            eventTitle = '' + moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm') + '';
+                            eventBackgroundColor = grey;
+                            eventBorderColor = grey;
+                            eventTextColor = black;
+                        } else {
+                            patientName = object.user.firstName + ' ' + object.user.lastName;
+                            eventTitle = '( ' + patientName + ' )' + moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm') + '';
+                            eventBackgroundColor = green;
+                            eventBorderColor = green;
+                            eventTextColor = white;
+                        }
+                        appointments.push({
+                            title: eventTitle,
+                            start: startDateTime,
+                            end: endDateTime,
+                            backgroundColor: eventBackgroundColor,
+                            borderColor: eventBorderColor,
+                            textColor: eventTextColor,
+                            name: patientName,
+                            time: moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm'),
+                            aptdate: moment(object.startDate).format('dddd DD MMMM, YYYY'),
+                            appointmentId: object.appointmentId,
+                            startDateTime: startDateTime
+                        });
+                    });
+                    //$('#basic-calendar').html('');
+                    //$('#basic-calendar').fullCalendar({
+                    //    header: {
+                    //        left: 'title',
+                    //        center: '',
+                    //        right: 'prev,next today,month,agendaWeek,agendaDay'
+                    //    },
+                    //    defaultView: 'month',
+                    //    navLinks: false, // can click day/week names to navigate views
+                    //    selectable: false,
+                    //    selectHelper: false,
+                    //    displayEventTime: false,
+                    //    displayEventEnd: false,
+                    //    eventStartEditable: false,
+                    //    showNonCurrentDates: false,
+                    //    weekends: true,
+                    //    views: {
+                    //        agendaWeek: {
+                    //            displayEventEnd: false // adjust to 6 only for agendaWeek/agendaDay
+                    //        }
+                    //    },
+                    //    eventLimit: true, // allow "more" link when too many events
+                    //    events: appointments,
+                    //    eventBackgroundColor: '',
+                    //    eventTextColor: '#000000',
+                    //    eventClick: function (event, jsEvent, view) {
+                    //        if (event.name === '') {
+                    //            $('#modal_appointment_detail span.name').html('N/A');
+                    //            $('#modal_appointment_detail div.card-action').html('<a href="javascript:void(0);" onclick="deleteAppointmentById(' + event.appointmentId + ')" class="right red-text">Delete Appointment</a>');
+                    //        } else {
+                    //            $('#modal_appointment_detail span.name').html(event.name);
+                    //            $('#modal_appointment_detail div.card-action').html('<a href="#" class="right red-text" onclick="cancelAppointmentById(' + event.appointmentId + ')">Cancel Appointment</a>');
+                    //        }
+
+                    //        $('#modal_appointment_detail span.appointment-date').html(event.date);
+                    //        $('#modal_appointment_detail span.appointment-time').html(event.time);
+
+                    //        $('#modal_appointment_detail').modal("open");
+                    //    }
+                    //});
+                    var basicCal = document.getElementById('basic-calendar');
+                    basicCal.innerHTML = "";
+                    var fcCalendar = new FullCalendar.Calendar(basicCal, {
+                        height: '100%',
+                        expandRows: true,
+                        header: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: "dayGridMonth,timeGridWeek,timeGridDay"
+                        },
+                        defaultDate: new Date(),
+                        editable: true,
+                        plugins: ["dayGrid", "timeGrid", "interaction"],
+                        eventLimit: true, // allow "more" link when too many events
+                        events: appointments,
+                        eventBackgroundColor: '',
+                        eventTextColor: '#000000',
+                        eventClick: function (eventClickInfo) {
+                            $('#modal_appointment_detail div.card-action').html('');
+                            var extendedProps = eventClickInfo.event.extendedProps;
+                            var diff = moment().diff(moment(extendedProps.startDateTime));
+                            if (extendedProps.name === '') {
+                                $('#modal_appointment_detail span.name').html('N/A');
+                                if (diff < 0) {
+                                    $('#modal_appointment_detail div.card-action').html('<a href="javascript:void(0);" onclick="deleteAppointmentById(' + extendedProps.appointmentId + ')" class="right red-text">Delete Appointment</a>');
+                                }
+                            } else {
+                                $('#modal_appointment_detail span.name').html(extendedProps.name);
+                                if (diff < 0) {
+                                    $('#modal_appointment_detail div.card-action').html('<a href="#" class="right red-text" onclick="cancelAppointmentById(' + extendedProps.appointmentId + ')">Cancel Appointment</a>');
+                                }
+                            }
+
+                            $('#modal_appointment_detail span.appointment-date').html(extendedProps.aptdate);
+                            $('#modal_appointment_detail span.appointment-time').html(extendedProps.time);
+
+                            $('#modal_appointment_detail').modal("open");
+                        }
+                    });
+                    fcCalendar.render();
+                });
+            }
+            function populateInterval(element_id) {
+                var interval = 5;
+                var totalMinutesInAnHour = 60;
+                var loopLength = totalMinutesInAnHour / interval;
+
+                for (var i = 1; i <= loopLength; i++) {
+                    $(element_id).append('<option value="' + (i * interval) + '">' + (i * interval) + '</option>')
+                }
+            }
+            function populateTimepicker(input_value, element_id) {
+                $("span[data-valmsg-for='CreateSlotRequestDto.Date']").html('');
+                $(element_id).html('');
+                var time = input_value;
+
+                if (time === undefined || time === '') time = "00:00";
+
+
+                var aptDate = $("#CreateSlotRequestDto_Date").val();
+                var isAptDateAfter = moment(aptDate, 'MM/DD/YYYY').isAfter(moment().format('MM/DD/YYYY'));
+                var isAptDateBefore = moment(aptDate, 'MM/DD/YYYY').isBefore(moment().format('MM/DD/YYYY'));
+                var isAptDateSame = moment(aptDate, 'MM/DD/YYYY').isSame(moment().format('MM/DD/YYYY'));
+
+                if (isAptDateBefore === true) {
+                    $('span[data-valmsg-for="CreateSlotRequestDto.Date"]').html('You cannot create previous date appointment slots');
+                    $('#CreateSlotRequestDto_StartTime').html('');
+                    $('#CreateSlotRequestDto_EndTime').html('');
+                    return;
+                }
+
+                var interval = $("#CreateSlotRequestDto_Interval").val();
+                var loopLength = 0;
+                var gap = 0;
+                var loopBreakValue = 0;
+                var totalMinutesPerDay = 1440;
+                if ((input_value === undefined || input_value === '') && isAptDateSame) {
+                    var currentHourMinutes = new Date().getMinutes();
+                    var currentTodayPassedHours = new Date().getHours();
+                    var currentTodayPassedHoursIntoMinutes = (currentTodayPassedHours * 60);
+                    var totalTodayMinutesPassed = currentHourMinutes + currentTodayPassedHoursIntoMinutes;
+                    var totalMinutesRemaining = totalMinutesPerDay - totalTodayMinutesPassed;
+                    //console.log(totalTodayMinutesPassed);
+
+                    loopLength = totalMinutesRemaining / interval;
+                    gap = Math.floor(totalTodayMinutesPassed / interval) * interval;
+                    //console.log(loopLength);
+                    //console.log(gap);
+                } else {
+                    loopLength = totalMinutesPerDay / interval;
+                    //console.log(loopLength);
+                }
+                loopBreakValue = (totalMinutesPerDay - gap - interval)
+                for (var i = 1; i < loopLength; i++) {
+                    var addMinutes = 0;
+                    if ((i === 1) && (input_value === undefined || input_value === '') && (isAptDateSame === false)) {
+                        addMinutes = gap;
+                        var optionText = moment(time, "HH:mm").add(addMinutes, 'minutes').format("HH:mm");
+                        var optionValue = moment(time, "HH:mm").add(addMinutes, 'minutes').format("HH:mm:ss");
+
+                        $(element_id).append('<option value="' + optionValue + '">' + optionText + '</option>');
+                    } else {
+                        addMinutes = gap + (i * interval);
+                        var optionText = moment(time, "HH:mm").add(addMinutes, 'minutes').format("HH:mm");
+                        var optionValue = moment(time, "HH:mm").add(addMinutes, 'minutes').format("HH:mm:ss");
+
+                        if (optionText === '00:00') break;
+
+                        $(element_id).append('<option value="' + optionValue + '">' + optionText + '</option>');
+                    }
+                    //if (addMinutes === loopBreakValue) break;
+                }
+                if (input_value === undefined || input_value === '') {
+                    var selectedValue = $(element_id + ' :selected').val();
+                    populateTimepicker(selectedValue, '#CreateSlotRequestDto_EndTime')
+                }
+            }
+            function onCreateSlotsSuccess(data) {
+                if (data.status === 1) {
+                    M.toast({ html: data.message, classes: 'teal' });
+                    $("#CreateSlotRequestDto_Interval").val($("#CreateSlotRequestDto_Interval option:first").val()).trigger('change');
+                    $("#CreateSlotRequestDto_Date").val(moment().format('MM/DD/YYYY'));
+                    PopulateAppointments();
+                } else {
+                    M.toast({ html: data.message, classes: 'red' });
+                }
+            }
+        </script>
+    }
+
+    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                PopulateAppointments();
+            });
+            function PopulateAppointments() {
+                var appointments = [];
+                $.get("../Appointments/GetAppointments").done(function (data) {
+                    $.each(data.data, function (index, object) {
+                        var startDateTime = moment(object.startDate).format('YYYY-MM-DD HH:mm');
+                        var endDateTime = moment(object.endDate).format('YYYY-MM-DD HH:mm');
+
+                        var green = "#009688";
+                        var grey = "#e5e5e5";
+                        var red = "#f44336";
+                        var white = "#fff";
+                        var black = "#000";
+
+                        var eventBackgroundColor = "";
+                        var eventBorderColor = "";
+                        var eventTextColor = "";
+                        var eventTitle = "";
+
+                        if (object.createdBy === null) {
+                            eventTitle = '' + moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm') + '';
+                            eventBackgroundColor = grey;
+                            eventBorderColor = grey;
+                            eventTextColor = black;
+                        } else {
+                            eventTitle = '( ' + object.createdBy.firstName + ' ' + object.createdBy.lastName + ' )' + moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm') + '';
+                            eventBackgroundColor = green;
+                            eventBorderColor = green;
+                            eventTextColor = white;
+                        }
+                        appointments.push({
+                            title: eventTitle,
+                            start: startDateTime,
+                            end: endDateTime,
+                            backgroundColor: eventBackgroundColor,
+                            borderColor: eventBorderColor,
+                            textColor: eventTextColor,
+                            name: object.createdBy.firstName + ' ' + object.createdBy.lastName,
+                            time: moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm'),
+                            aptdate: moment(object.startDate).format('dddd DD MMMM, YYYY'),
+                            appointmentId: object.appointmentId,
+                            doctorId: object.createdById,
+                            startDateTime: startDateTime
+                        });
+                    });
+
+
+                    //$('#basic-calendar').fullCalendar({
+                    //    header: {
+                    //        left: 'title',
+                    //        center: '',
+                    //        right: 'prev,next today,month,agendaWeek,agendaDay'
+                    //    },
+                    //    defaultView: 'month',
+                    //    navLinks: false, // can click day/week names to navigate views
+                    //    selectable: false,
+                    //    selectHelper: false,
+                    //    displayEventTime: false,
+                    //    displayEventEnd: false,
+                    //    eventStartEditable: false,
+                    //    showNonCurrentDates: false,
+                    //    weekends: true,
+                    //    views: {
+                    //        agendaWeek: {
+                    //            displayEventEnd: false // adjust to 6 only for agendaWeek/agendaDay
+                    //        }
+                    //    },
+                    //    eventLimit: true, // allow "more" link when too many events
+                    //    events: appointments,
+                    //    eventBackgroundColor: '',
+                    //    eventTextColor: '#000000',
+                    //    eventClick: function (event, jsEvent, view) {
+                    //        if (event.name === '') {
+                    //            $('#modal_appointment_detail span.name').html('N/A');
+                    //        } else {
+                    //            $('#modal_appointment_detail span.name').html(event.name);
+                    //        }
+
+                    //        $('#modal_appointment_detail span.appointment-date').html(event.date);
+                    //        $('#modal_appointment_detail span.appointment-time').html(event.time);
+                    //        $('#modal_appointment_detail div.card-action').html('<a href="#" class="left blue-text">Reschedule Appointment</a> <a href="#" class="right red-text">Cancel Appointment</a>');
+                    //        $('#modal_appointment_detail').modal("open");
+                    //    }
+                    //});
+
+                    var basicCal = document.getElementById('basic-calendar');
+                    basicCal.innerHTML = "";
+                    var fcCalendar = new FullCalendar.Calendar(basicCal, {
+                        height: '100%',
+                        expandRows: true,
+                        header: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: "dayGridMonth,timeGridWeek,timeGridDay"
+                        },
+                        defaultDate: new Date(),
+                        editable: true,
+                        plugins: ["dayGrid", "timeGrid", "interaction"],
+                        eventLimit: true, // allow "more" link when too many events
+                        events: appointments,
+                        eventBackgroundColor: '',
+                        eventTextColor: '#000000',
+                        eventClick: function (eventClickInfo) {
+                            $('#modal_appointment_detail div.card-action').html('');
+                            var extendedProps = eventClickInfo.event.extendedProps;
+                            var diff = moment().diff(moment(extendedProps.startDateTime));
+                            if (extendedProps.name === '') {
+                                $('#modal_appointment_detail span.name').html('N/A');
+                                if (diff < 0) {
+                                    $('#modal_appointment_detail div.card-action').html('<a href="javascript:void(0);" onclick="deleteAppointmentById(' + extendedProps.appointmentId + ')" class="right red-text">Delete Appointment</a>');
+                                }
+                            } else {
+                                $('#modal_appointment_detail span.name').html(extendedProps.name);
+                                if (diff < 0) {
+                                    $('#modal_appointment_detail div.card-action').html('<a href="javascript:void(0);" class="left blue-text" onclick="rescheduleAppointment(' + extendedProps.appointmentId + ', ' + extendedProps.doctorId + ')">Reschedule Appointment</a> <a href="javascript:void(0);" class="right red-text" onclick="cancelAppointmentById(' + extendedProps.appointmentId + ')">Cancel Appointment</a>');
+                                }
+                            }
+
+                            $('#modal_appointment_detail span.appointment-date').html(extendedProps.aptdate);
+                            $('#modal_appointment_detail span.appointment-time').html(extendedProps.time);
+
+                            $('#modal_appointment_detail').modal("open");
+                        }
+                    });
+                    fcCalendar.render();
+                });
+            }
+            function cancelAppointmentById(id) {
+                $.confirm({
+                    title: 'Alert',
+                    content: 'Are you sure you want to cancel this appointment slot?',
+                    buttons: {
+                        Yes: {
+                            text: 'Yes',
+                            btnClass: 'blue',
+                            action: function () {
+                                $.post("../Appointments/CancelAppointment", { id: id }).done(function (data) {
+                                    if (data.status === 1) {
+                                        M.toast({ html: data.message, classes: 'teal' });
+                                        $('#modal_appointment_detail').modal("close");
+                                        PopulateAppointments();
+                                    } else {
+                                        M.toast({ html: data.message, classes: 'red' });
+                                    }
+                                });
+                            }
+                        },
+                        No: {
+                            text: 'No',
+                            btnClass: 'red',
+                        }
+                    }
+                });
+            }
+            function rescheduleAppointment(aptId, docId) {
+                $.confirm({
+                    title: 'Alert',
+                    content: 'Are you sure you want to reschedule this appointment slot?',
+                    buttons: {
+                        Yes: {
+                            text: 'Yes',
+                            btnClass: 'blue',
+                            action: function () {
+                                $.post("../Appointments/CancelAppointment", { id: aptId }).done(function (data) {
+                                    if (data.status === 1) {
+                                        //M.toast({ html: data.message, classes: 'teal' });
+                                        //$('#modal_appointment_detail').modal("close");
+                                        window.location.href = "@Url.Action(nameof(DoctorsController.Profile), "Doctors")/" + docId + "";
+                                    } else {
+                                        M.toast({ html: data.message, classes: 'red' });
+                                    }
+                                });
+                            }
+                        },
+                        No: {
+                            text: 'No',
+                            btnClass: 'red',
+                        }
+                    }
+                });
+            }
+        </script>
+    }
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.date-formatter').formatter({
+                'pattern': '{{99}}/{{99}}/{{9999}}',
+            });
+        });
+    </script>
+}
+@*<div id="breadcrumbs-wrapper" data-image="../../../app-assets/images/gallery/breadcrumb-bg.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m12 l12">
+                    <h5 class="breadcrumbs-title mt-0 mb-0"><span>Appointments</span></h5>
+                </div>
+            </div>
+        </div>
+    </div>*@
+<div class="content-wrapper-before"></div>
+<div class="col s12">
+    <div class="container">
+        <div id="app-calendar">
+            <div class="row">
+                @*<div class="col s12">
+                        <div class="row mt-1">
+                            <div class="input-field col s12">
+                                <input id="txt_search" type="text" class="">
+                                <label for="txt_search" class="center-align">Search by name...</label>
+                            </div>
+                        </div>
+                    </div>*@
+                <div class="col s12">
+                    <div class="card">
+                        <div class="card-content">
+                            <h4 class="card-title"></h4>
+                            <div id="basic-calendar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+        {
+            <div style="bottom: 50px; right: 19px;" class="fixed-action-btn direction-top">
+                <a class="btn-floating btn-large gradient-45deg-indigo-light-blue gradient-shadow btn modal-trigger" href="#modal_appointment_slots"><i class="material-icons">add</i></a>
+            </div>
+        }
+
+    </div>
+    <div class="content-overlay"></div>
+</div>
+@if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+{
+    <div id="modal_appointment_slots" class="modal modal-fixed-footer" data-backdrop="static" data-keyboard="false">
+        <form id="form_doctor_award" asp-action="CreateSlots" asp-controller="Appointments" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onCreateSlotsSuccess(data)">
+            <div class="modal-content">
+                <h4>Appointment Slots</h4>
+                <div class="row">
+                    <div class="input-field col s12 m4 l4">
+                        <select class="browser-default" asp-for="CreateSlotRequestDto.AppointmentTypeId" asp-items="Model.AppointmentTypes"></select>
+                    </div>
+                    <div class="input-field col s12 m4 l4">
+                        <select class="browser-default" asp-for="CreateSlotRequestDto.Interval" onchange="changeInterval()"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12 m4 l4">
+                        <input type="text" class="date-formatter" placeholder="MM/DD/YYYY" asp-for="CreateSlotRequestDto.Date" asp-format="{0:MM/dd/yyyy}">
+                        <label class="center-align" asp-for="CreateSlotRequestDto.Date">Appointment Date</label>
+                        <span class="red-text" asp-validation-for="CreateSlotRequestDto.Date"></span>
+                    </div>
+                    @*<div class="input-field col s12 m4 l4">
+                            <input type="text" asp-for="CreateSlotRequestDto.StartTime" placeholder="hh:mm A">
+                            <label class="center-align active" asp-for="CreateSlotRequestDto.StartTime">Start Time</label>
+                            <span class="red-text" asp-validation-for="CreateSlotRequestDto.StartTime"></span>
+                        </div>
+                        <div class="input-field col s12 m4 l4">
+                            <input type="text" asp-for="CreateSlotRequestDto.EndTime" placeholder="hh:mm A">
+                            <label class="center-align active" asp-for="CreateSlotRequestDto.EndTime">End Time</label>
+                            <span class="red-text" asp-validation-for="CreateSlotRequestDto.EndTime"></span>
+                        </div>*@
+                    <div class="input-field col s12 m4 l4">
+                        <select class="browser-default" asp-for="CreateSlotRequestDto.StartTime"></select>
+                        <span class="red-text" asp-validation-for="CreateSlotRequestDto.StartTime"></span>
+                    </div>
+                    <div class="input-field col s12 m4 l4">
+                        <select class="browser-default" asp-for="CreateSlotRequestDto.EndTime"></select>
+                        <span class="red-text" asp-validation-for="CreateSlotRequestDto.EndTime"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+                <button type="submit" class="waves-effect waves-green btn-flat">Create Slots</button>
+            </div>
+        </form>
+    </div>
+}
+<div id="modal_appointment_detail" class="modal width-30">
+    <div class="modal-content p-0">
+        <div class="card m-0">
+            <div class="card-content">
+                <table class="striped">
+                    <tr>
+                        <th class="width-20 center"><i class="material-icons">person</i></th>
+                        <td class="width-80 center"><span class="name"></span></td>
+                    </tr>
+                    <tr>
+                        <th class="width-20 center"><i class="material-icons">event</i></th>
+                        <td class="width-80 center"><span class="appointment-date"></span></td>
+                    </tr>
+                    <tr>
+                        <th class="width-20 center"><i class="material-icons">access_time</i></th>
+                        <td class="width-80 center"><span class="appointment-time"></span></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="card-action"></div>
+        </div>
+    </div>
+</div>

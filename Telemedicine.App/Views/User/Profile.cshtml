@@ -1,0 +1,642 @@
+﻿@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+
+@{
+    ViewData["Title"] = "Profile";
+
+    int userRoleId = _sessionManager.GetUserRoleId();
+    string username = _sessionManager.GetUsername();
+    decimal Latitude = 40.730610m;
+    decimal Longitude = -73.935242m;
+}
+@section styles{
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/magnific-popup/magnific-popup.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/user-profile-page.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/hover-effects/media-hover-effects.css">
+    <link href="~/lib/google-map/ChooseLocation.css" rel="stylesheet" />
+    <link href="~/app-assets/vendors/select2/select2.min.css" rel="stylesheet" />
+    <link href="~/app-assets/vendors/select2/select2-materialize.css" rel="stylesheet" />
+    <link href="~/app-assets/css/pages/form-select2.min.css" rel="stylesheet" />
+    <style type="text/css">
+        .grid figure {
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        figure.effect-zoe p.icon-links a {
+            float: none;
+        }
+
+            figure.effect-zoe p.icon-links a i.material-icons {
+                font-size: 40px;
+                color: #efefef;
+                cursor: pointer;
+            }
+
+        figure.effect-zoe p.icon-links label i.material-icons {
+            font-size: 40px;
+            color: #efefef;
+            cursor: pointer;
+        }
+
+        figure.effect-zoe figcaption {
+            background: #0c0c0c70;
+        }
+
+        .grid figure p {
+            font-size: 100%;
+        }
+
+        .carousel.carousel-slider .carousel-item {
+            min-height: calc(100vh - 116px);
+        }
+
+        #pac-input {
+            /*width: calc(100% - 100px);*/
+            width: 100% !important;
+        }
+
+            #pac-input[type=text]:not(.browser-default):focus:not([readonly]) {
+                border-bottom: none !important;
+                box-shadow: none !important;
+            }
+
+        .image-profile-picture-css {
+            max-width: 120px !important;
+            min-width: 120px !important;
+            width: 100%;
+            max-height: 120px !important;
+            min-height: 120px !important;
+            height: 100% !important;
+            vertical-align: middle;
+            /*            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;*/
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+
+        #user_current_location {
+            width: 100%;
+            height: 400px;
+            margin-right: auto;
+            margin-left: auto;
+            box-shadow: 0 0 3px rgba(0,0,0,0.3);
+            margin: 10px 0;
+        }
+    </style>
+}
+@section scripts{
+    <script src="~/app-assets/vendors/magnific-popup/jquery.magnific-popup.min.js"></script>
+    <script src="~/app-assets/vendors/imagesloaded.pkgd.min.js"></script>
+    <script src="~/app-assets/vendors/masonry.pkgd.min.js"></script>
+    <script src="~/app-assets/js/scripts/media-hover-effects.js"></script>
+    <script src="~/app-assets/vendors/formatter/jquery.formatter.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQcmSvCH5unhfQij4tZg5qKwnVqcIv7ME&libraries=places" async defer></script>
+    <script src="~/lib/google-map/ChooseLocation.js"></script>
+    <script src="~/app-assets/vendors/select2/select2.full.min.js"></script>
+    @*<script src="~/app-assets/js/scripts/form-select2.min.js"></script>*@
+    <script type="text/javascript">
+        function showUserCurrentLocationOnMap() {
+            var lat = $("#UserRequestDto_Latitude").val();
+            var long = $("#UserRequestDto_Longitude").val();
+
+            initializeValuesByMapId(lat, long, 'user_current_location');
+        }
+        function chooseLocation() {
+            var location = $("#UserRequestDto_PrimaryAddress").val();
+            var lat = $("#UserRequestDto_Latitude").val();
+            var long = $("#UserRequestDto_Longitude").val();
+
+            if (!(location === '') && !(location === undefined)) {
+                $("#pac-input").val(location);
+                $("#address").val(location);
+            }
+
+            if (!(lat === '') && !(lat === undefined)) {
+                $("#latitude").val(lat);
+            }
+
+            if (!(long === '') && !(long === undefined)) {
+                $("#longitude").val(long);
+            }
+            initializeValues();
+            $("#modal_choose_location").modal("open");
+        }
+        function addLocation() {
+            var modalAddress = $("#modal_choose_location #address").val();
+            var modalLatitude = $("#modal_choose_location #latitude").val();
+            var modalLongitude = $("#modal_choose_location #longitude").val();
+            if (!(modalAddress === "")) {
+                $("#UserRequestDto_PrimaryAddress").val(modalAddress);
+                $("label[for='UserRequestDto_PrimaryAddress']").addClass("active");
+
+                $("#UserRequestDto_Latitude").val(modalLatitude);
+                $("label[for='UserRequestDto_Latitude']").addClass("active");
+
+                $("#UserRequestDto_Longitude").val(modalLongitude);
+                $("label[for='UserRequestDto_Longitude']").addClass("active");
+
+                $("#modal_choose_location").modal("close");
+                $('#modal_choose_location .modal-error').hide();
+            }
+            else {
+                $('#modal_choose_location .modal-error').show();
+            }
+        }
+        function getProfile() {
+            $.get("../User/GetProfile").done(function (data) {
+                $("#tab_personal").html(data);
+
+                $('.date-formatter').formatter({
+                    'pattern': '{{99}}/{{99}}/{{9999}}',
+                });
+                $('.phone-formatter').formatter({
+                    'pattern': '({{999}}) {{999}}-{{9999}}',
+                    'persistent': true
+                });
+
+                $('#form_personal_information').on('submit', function (e) {
+                    e.preventDefault(); // <-- important
+                    if ($(this).valid()) {
+                        $(this).ajaxSubmit({
+                            success: onUpdateUserSuccess
+                        });
+                    }
+                });
+
+                $("form").removeData("validator");
+                $("form").removeData("unobtrusiveValidation");
+                $.validator.unobtrusive.parse("form");
+
+                $(':input').filter(function () {
+                    if (this.value) {
+                        $(this).next("label").addClass("active");
+                    };
+                });
+
+                $('#UserRequestDto_DateOfBirth').pickadate({
+                    format: 'mm/dd/yyyy',
+                    selectYears: true,
+                    selectMonths: true,
+                    min: [1990, 1, 1],
+                    max: new Date()
+                });
+
+                $('.pickadate').pickadate({
+                    format: 'mm/dd/yyyy',
+                    selectYears: true,
+                    selectMonths: true
+                });
+
+                $(".select2").select2({
+                    /* the following code is used to disable x-scrollbar when click in select input and
+                    take 100% width in responsive also */
+                    dropdownAutoWidth: true,
+                    width: '100%',
+                    placeholder: "Licensed States"
+                });
+
+                var dob = $("#UserRequestDto_DateOfBirth").val();
+                $("#user_date_of_birth").html(moment(dob).format('DD MMM, YYYY'));
+
+                var phone = $("#UserRequestDto_Phone").val();
+                $("#user_phone_number").html(phone);
+
+                var bio = $("#UserRequestDto_Bio").val();
+                $("#user_bio").html(bio);
+
+                var gender = $("#UserRequestDto_GenderId :selected").text();
+                $("#user_gender").html(gender);
+
+                var language = $("#UserRequestDto_PreferredLanguageTypeId :selected").text();
+                $("#user_preferred_language").html(language);
+
+                showUserCurrentLocationOnMap();
+            });
+        }
+        function onUpdateUserSuccess(data) {
+            if (data.status === 1) {
+                M.toast({ html: data.message, classes: 'teal' });
+                getProfile();
+            } else {
+                M.toast({ html: data.message, classes: 'red' });
+            }
+        }
+        function onResetPasswordSuccess(data) {
+            if (data.status === 1) {
+                M.toast({ html: data.message, classes: 'teal' });
+                $("#ResetPasswordRequestDto_CurrentPassword").val('');
+                $("#ResetPasswordRequestDto_NewPassword").val('');
+                $("#ResetPasswordRequestDto_ConfirmPassword").val('');
+            } else {
+                M.toast({ html: data.message, classes: 'red' });
+            }
+        }
+        function uploadProfilePicture() {
+            if ($('#form_profile_picture').valid()) {
+                $('#form_profile_picture').ajaxSubmit({
+                    success: onProfilePictureSuccess
+                });
+            }
+        }
+        function onProfilePictureSuccess(data) {
+            if (data.status === 1) {
+                M.toast({ html: data.message, classes: 'teal' });
+                $('.current-user-profile-picture').attr('src', data.data);
+            } else {
+                M.toast({ html: data.message, classes: 'red' });
+            }
+        }
+    </script>
+    @{
+        if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Admin))
+        {
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    getProfile();
+                });
+            </script>
+        }
+        if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+        {
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('.date-formatter').formatter({
+                        'pattern': '{{99}}/{{99}}/{{9999}}',
+                    });
+                    getProfile();
+                    getAwards();
+                    getEducations();
+                    getExperiences();
+                });
+                function deleteLicenseById(id) {
+                    $.confirm({
+                        title: 'Alert',
+                        content: 'Are you sure you want to delete this State(s) Licensed to Practice?',
+                        buttons: {
+                            Yes: {
+                                text: 'Yes',
+                                btnClass: 'blue',
+                                action: function () {
+                                    $.post("../DoctorProfile/DeleteLicenseById", { id: id }).done(function (data) {
+                                        if (data.status === 1) {
+                                            M.toast({ html: data.message, classes: 'teal' });
+                                            getProfile();
+                                        } else {
+                                            M.toast({ html: data.message, classes: 'red' });
+                                        }
+                                    });
+                                }
+                            },
+                            No: {
+                                text: 'No',
+                                btnClass: 'red',
+                            }
+                        }
+                    });
+                }
+                function onDoctorExperienceSuccess(data) {
+                    if (data.status === 1) {
+                        M.toast({ html: data.message, classes: 'teal' });
+                        resetForm('#form_doctor_experience');
+                        $("#modal_experience").modal('close');
+                        getExperiences();
+                    } else {
+                        M.toast({ html: data.message, classes: 'red' });
+                    }
+                }
+                function onDoctorEducationSuccess(data) {
+                    if (data.status === 1) {
+                        M.toast({ html: data.message, classes: 'teal' });
+                        resetForm('#form_doctor_education');
+                        $("#modal_education").modal('close');
+                        getEducations();
+                    } else {
+                        M.toast({ html: data.message, classes: 'red' });
+                    }
+                }
+                function onDoctorAwardSuccess(data) {
+                    if (data.status === 1) {
+                        M.toast({ html: data.message, classes: 'teal' });
+                        resetForm('#form_doctor_award');
+                        $("#modal_awards").modal('close');
+                        getAwards();
+
+                    } else {
+                        M.toast({ html: data.message, classes: 'red' });
+                    }
+                }
+                function getExperienceById(id) {
+                    $.post("../DoctorExperience/GetById", { id: id }).done(function (data) {
+                        populateForm('#form_doctor_experience', data.data, 'DoctorExperienceRequestDto.');
+                        $("#DoctorExperienceRequestDto_StartDate").val(moment(data.data.startDate).format('MM/DD/YYYY'));
+                        if (!(data.data.endDate === null) && !(data.data.endDate === undefined)) {
+                            $("#DoctorExperienceRequestDto_EndDate").val(moment(data.data.endDate).format('MM/DD/YYYY'));
+                        }
+
+                        $("#modal_experience").modal('open');
+                    });
+                }
+                function getEducationById(id) {
+                    $.post("../DoctorEducation/GetById", { id: id }).done(function (data) {
+                        populateForm('#form_doctor_education', data.data, 'DoctorEducationRequestDto.');
+                        $("#DoctorEducationRequestDto_StartDate").val(moment(data.data.startDate).format('MM/DD/YYYY'));
+                        if (!(data.data.endDate === null) && !(data.data.endDate === undefined)) {
+                            $("#DoctorEducationRequestDto_EndDate").val(moment(data.data.endDate).format('MM/DD/YYYY'));
+                        }
+                        $("#modal_education").modal('open');
+                    });
+                }
+                function getAwardById(id) {
+                    $.post("../DoctorAward/GetById", { id: id }).done(function (data) {
+                        populateForm('#form_doctor_award', data.data, 'DoctorAwardRequestDto.');
+                        $("#DoctorAwardRequestDto_AwardDate").val(moment(data.data.startDate).format('MM/DD/YYYY'));
+                        $("#modal_awards").modal('open');
+                    });
+                }
+                function getExperiences() {
+                    $.get("../DoctorExperience/GetAllByUser").done(function (data) {
+                        $("#experience_detail").html(data);
+                    });
+                }
+                function getEducations() {
+                    $.get("../DoctorEducation/GetAllByUser").done(function (data) {
+                        $("#education_detail").html(data);
+                    });
+                }
+                function getAwards() {
+                    $.get("../DoctorAward/GetAllByUser").done(function (data) {
+                        $("#award_detail").html(data);
+                    });
+                }
+                function deleteExperienceById(id) {
+                    $.confirm({
+                        title: 'Alert',
+                        content: 'Are you sure you want to delete this Experience?',
+                        buttons: {
+                            Yes: {
+                                text: 'Yes',
+                                btnClass: 'blue',
+                                action: function () {
+                                    $.post("../DoctorExperience/DeleteById", { id: id }).done(function (data) {
+                                        if (data.status === 1) {
+                                            M.toast({ html: data.message, classes: 'teal' });
+                                            getExperiences();
+                                        } else {
+                                            M.toast({ html: data.message, classes: 'red' });
+                                        }
+                                    });
+                                }
+                            },
+                            No: {
+                                text: 'No',
+                                btnClass: 'red',
+                            }
+                        }
+                    });
+                }
+                function deleteEducationById(id) {
+                    $.confirm({
+                        title: 'Alert',
+                        content: 'Are you sure you want to delete this Education?',
+                        buttons: {
+                            Yes: {
+                                text: 'Yes',
+                                btnClass: 'blue',
+                                action: function () {
+                                    $.post("../DoctorEducation/DeleteById", { id: id }).done(function (data) {
+                                        if (data.status === 1) {
+                                            M.toast({ html: data.message, classes: 'teal' });
+                                            getEducations();
+                                        } else {
+                                            M.toast({ html: data.message, classes: 'red' });
+                                        }
+                                    });
+                                }
+                            },
+                            No: {
+                                text: 'No',
+                                btnClass: 'red',
+                            }
+                        }
+                    });
+                }
+                function deleteAwardById(id) {
+                    $.confirm({
+                        title: 'Alert',
+                        content: 'Are you sure you want to delete this Award?',
+                        buttons: {
+                            Yes: {
+                                text: 'Yes',
+                                btnClass: 'blue',
+                                action: function () {
+                                    $.post("../DoctorAward/DeleteById", { id: id }).done(function (data) {
+                                        if (data.status === 1) {
+                                            M.toast({ html: data.message, classes: 'teal' });
+                                            getAwards();
+                                        } else {
+                                            M.toast({ html: data.message, classes: 'red' });
+                                        }
+                                    });
+                                }
+                            },
+                            No: {
+                                text: 'No',
+                                btnClass: 'red',
+                            }
+                        }
+                    });
+                }
+            </script>
+        }
+
+        if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+        {
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('.date-formatter').formatter({
+                        'pattern': '{{99}}/{{99}}/{{9999}}',
+                    });
+                    $('#form_file').on('submit', function (e) {
+                        e.preventDefault(); // <-- important
+                        if ($(this).valid()) {
+                            $(this).ajaxSubmit({
+                                success: onPatientAttachmentSuccess
+                            });
+                        }
+                    });
+                    getProfile();
+                    getSOAPNotes();
+                    getPatientAttachments();
+                });
+                function onSOAPNoteSuccess(data) {
+                    if (data.status === 1) {
+                        M.toast({ html: data.message, classes: 'teal' });
+                        resetForm('#form_soap_note');
+                        $("#modal_soap_notes").modal("close");
+                        getSOAPNotes();
+                    } else {
+                        M.toast({ html: data.message, classes: 'red' });
+                    }
+                }
+                function onPatientAttachmentSuccess(data) {
+                    if (data.status === 1) {
+                        M.toast({ html: data.message, classes: 'teal' });
+                        resetForm('#form_file');
+                        $("#modal_reports").modal("close");
+                        getPatientAttachments();
+                    } else {
+                        M.toast({ html: data.message, classes: 'red' });
+                    }
+                }
+                function getSOAPNoteById(id) {
+                    $.post("../SOAPNote/GetById", { id: id }).done(function (data) {
+                        populateForm("#form_soap_note", data.data, 'SOAPNoteRequestDto.');
+                        $("#modal_soap_notes").modal('open');
+                    });
+                }
+                function getPatientAttachmentById(id) {
+                    $.post("../PatientAttachment/GetById", { id: id }).done(function (data) {
+                        populateForm('#form_file', data.data, 'PatientAttachmentRequestDto.');
+                        $("#PatientAttachmentRequestDto_AttachmentDate").val(moment(data.data.attachmentDate).format('MM/DD/YYYY'));
+                        $("#form_file .input-field .file-field").css('display', 'none');
+                        $("#modal_reports").modal('open');
+                    });
+                }
+                function getSOAPNotes() {
+                    $.get("../SOAPNote/GetAll").done(function (data) {
+                        $("#soap_note_detail").html(data);
+                    });
+                }
+                function getPatientAttachments() {
+                    $.get("../PatientAttachment/GetAllByUser").done(function (data) {
+                        $("#file_detail").html(data);
+                    });
+                }
+                function deletePatientAttachmentById(id) {
+                    $.confirm({
+                        title: 'Alert',
+                        content: 'Are you sure you want to delete this Attach Record?',
+                        buttons: {
+                            Yes: {
+                                text: 'Yes',
+                                btnClass: 'blue',
+                                action: function () {
+                                    $.post("../PatientAttachment/DeleteById", { id: id }).done(function (data) {
+                                        if (data.status === 1) {
+                                            M.toast({ html: data.message, classes: 'teal' });
+                                            getPatientAttachments();
+                                        } else {
+                                            M.toast({ html: data.message, classes: 'red' });
+                                        }
+                                    });
+                                }
+                            },
+                            No: {
+                                text: 'No',
+                                btnClass: 'red',
+                            }
+                        }
+                    });
+                }
+                function deleteSOAPNoteById(id) {
+                    $.confirm({
+                        title: 'Alert',
+                        content: 'Are you sure you want to delete this SOAP Note?',
+                        buttons: {
+                            Yes: {
+                                text: 'Yes',
+                                btnClass: 'blue',
+                                action: function () {
+                                    $.post("../SOAPNote/DeleteById", { id: id }).done(function (data) {
+                                        if (data.status === 1) {
+                                            M.toast({ html: data.message, classes: 'teal' });
+                                            getSOAPNotes();
+                                        } else {
+                                            M.toast({ html: data.message, classes: 'red' });
+                                        }
+                                    });
+                                }
+                            },
+                            No: {
+                                text: 'No',
+                                btnClass: 'red',
+                            }
+                        }
+                    });
+                }
+            </script>
+        }
+    }
+}
+@*<div id="breadcrumbs-wrapper" data-image="../../../app-assets/images/gallery/breadcrumb-bg.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m12 l12">
+                    <h5 class="breadcrumbs-title mt-0 mb-0"><span>@username's Profile</span></h5>
+                </div>
+            </div>
+        </div>
+    </div>*@
+<div class="content-wrapper-before gradient-45deg-indigo-light-blue"></div>
+<div class="col s12">
+    <div class="container">
+        <div class="section" id="user-profile">
+            <div class="row">
+                @{
+                    if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Admin))
+                    {
+                        <partial name="~/Views/User/PartialViews/_AdminProfile.cshtml" />
+                    }
+
+                    if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                    {
+                        <partial name="~/Views/User/PartialViews/_DoctorProfile.cshtml" />
+                    }
+
+                    if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+                    {
+                        <partial name="~/Views/User/PartialViews/_PatientProfile.cshtml" />
+                    }
+                }
+            </div>
+        </div>
+        <div class="content-overlay"></div>
+    </div>
+</div>
+<div id="modal_choose_location" class="modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-content upload-location">
+        <h4>Choose Location</h4>
+        <div class="row">
+            <div class="input-field col s12 m10 l10">
+                <input id="pac-input" type="text">
+            </div>
+            <div class="input-field col s12 m2 l2">
+                <button class="btn cyan waves-effect waves-light right gradient-45deg-indigo-light-blue font-weight-900" type="button" onclick="getLocation()">
+                    <i class="material-icons">my_location</i>
+                </button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <div id="GeoLocationErrorMsg" class="red-text"></div>
+                <div id="map"></div>
+                <h6 class="text-muted">Click on a location to select it. Drag the marker to change location.</h6>
+                <input type="hidden" id="address" placeholder="Address" value="" required>
+                <input type="hidden" id="latitude" placeholder="Latitude" value="@Latitude" required>
+                <input type="hidden" id="longitude" placeholder="Longitude" value="@Longitude" required>
+                <p class="modal-error red-text">Please select the location.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12 right">
+                <button class="btn cyan waves-effect waves-light right gradient-45deg-indigo-light-blue font-weight-900" type="button" onclick="addLocation()">
+                    Add Location
+                    <i class="material-icons right">add_location</i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

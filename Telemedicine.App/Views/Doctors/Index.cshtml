@@ -1,0 +1,361 @@
+﻿@model Telemedicine.App.Models.DoctorViewModel
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager
+@using Telemedicine.Utilities
+@{
+    ViewData["Title"] = "Therapists";
+    int aptFee = Convert.ToInt32(Configurations.AppointmentFee);
+    if (aptFee > 0)
+        aptFee = aptFee * 100;
+}
+@section styles{
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/rateYo/jquery.rateyo.min.css">
+    <link rel="stylesheet" href="~/app-assets/vendors/select2/select2.min.css" type="text/css">
+    <link rel="stylesheet" href="~/app-assets/vendors/select2/select2-materialize.css" type="text/css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/form-select2.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/page-blog.css">
+    <link href="~/lib/google-map/ChooseLocation.css" rel="stylesheet" />
+    <link href="~/app-assets/css/pages/pricing.min.css" rel="stylesheet" />
+    <style type="text/css">
+        .card-image {
+            height: 150px;
+        }
+
+            .card-image div.activator {
+                height: 250px;
+            }
+
+        .card-profile-image {
+            position: absolute;
+            z-index: 1;
+            top: 90px;
+            width: 70px;
+            cursor: pointer;
+        }
+
+        .btn-move-up {
+            position: relative;
+            top: -30px;
+            right: 0px;
+            margin-right: 10px !important;
+        }
+
+        .select2-container--default .select2-selection--multiple {
+            background-color: #ffffff70;
+            border-bottom: none;
+        }
+
+        .input-field input[type=search]:focus:not(.browser-default) {
+            background-color: #ffffff00;
+        }
+
+        .filters-input {
+            height: 43px !important;
+            font-size: 16px !important;
+            font-weight: 400 !important;
+            display: block !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+            margin-bottom: 0 !important;
+            padding: 8px 8px 8px 8px !important;
+            -webkit-transition: all 200ms ease !important;
+            transition: all 200ms ease !important;
+            border: none !important;
+            /*border-radius: 3px !important;*/
+            outline: none !important;
+            background: #ffffff70 !important;
+            -webkit-appearance: textfield !important;
+            -moz-appearance: textfield !important;
+            appearance: textfield !important;
+            color: black !important;
+            cursor: auto !important;
+        }
+
+            .filters-input::placeholder, .select2-search__field::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+                color: black !important;
+                opacity: 1; /* Firefox */
+            }
+
+            .filters-input:-ms-input-placeholder, .select2-search__field:-ms-input-placeholder { /* Internet Explorer 10-11 */
+                color: black !important;
+            }
+
+            .filters-input::-ms-input-placeholder, .select2-search__field::-ms-input-placeholder { /* Microsoft Edge */
+                color: black !important;
+            }
+
+        #modal_appointment_wizard.modal {
+            width: 35%;
+        }
+
+        #pac-input {
+            /*width: calc(100% - 100px);*/
+            width: 100% !important;
+        }
+
+            #pac-input[type=text]:not(.browser-default):focus:not([readonly]) {
+                border-bottom: none !important;
+                box-shadow: none !important;
+            }
+
+        .image-profile-picture-css {
+            max-width: 250px !important;
+            width: 100%;
+            max-height: 250px !important;
+            height: 100%;
+            vertical-align: middle;
+            /*            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;*/
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+
+        #blog-list .card.horizontal {
+            max-height: 250px;
+        }
+    </style>
+}
+@section scripts{
+    <script src="~/app-assets/vendors/rateYo/jquery.rateyo.min.js"></script>
+    <script src="~/app-assets/vendors/select2/select2.full.min.js"></script>
+    <script src="~/app-assets/js/scripts/form-select2.js"></script>
+    <script src="~/app-assets/js/scripts/extra-components-ratings.js"></script>
+    @*<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQcmSvCH5unhfQij4tZg5qKwnVqcIv7ME&libraries=places&callback=initMap" async defer></script>*@
+    @*<script src="~/lib/google-map/ChooseLocation.js"></script>*@
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var message = $("#txt_message").val();
+            if (!(message === '') && !(message === undefined)) {
+                M.toast({ html: message, classes: 'teal' });
+                sendBookedAppointmentNotification($('#txt_message').attr('data-doctor-id'));
+            }
+            $("#form_get_doctors").submit();
+        });
+        //function chooseLocation() {
+        //    var location = $("#location").val();
+        //    if (!(location === '') && !(location === undefined)) {
+        //        $("#pac-input").val(location);
+        //    }
+        //    $("#modal_choose_location").modal("open");
+        //}
+        //function addLocation() {
+        //    var modalAddress = $("#modal_choose_location #address").val();
+        //    var modalLatitude = $("#modal_choose_location #latitude").val();
+        //    var modalLongitude = $("#modal_choose_location #longitude").val();
+        //    if (!(modalAddress === "") && !(modalLatitude === "") && !(modalLongitude === "")) {
+        //        $("#GetDoctorsByFiltersRequestDto_Address").val(modalAddress);
+        //        $("#GetDoctorsByFiltersRequestDto_Latitude").val(modalLatitude);
+        //        $("#GetDoctorsByFiltersRequestDto_Longitude").val(modalLongitude);
+        //        $("label[for='GetDoctorsByFiltersRequestDto_Address']").addClass("active");
+        //        $("#modal_choose_location").modal("close");
+        //        $('#modal_choose_location .modal-error').hide();
+        //    }
+        //    else {
+        //        $('#modal_choose_location .modal-error').show();
+        //    }
+        //}
+        function onGetDoctorsSuccess(data) {
+            $("#doctors_detail").html(data);
+            $(".num-rate").rateYo({
+                onChange: function (rating, rateYoInstance) {
+                    // $(this).prev().text(rating);
+                    $(this).attr("data-tooltip", rating);
+                }
+            });
+            //$.get("../Doctors/GetDoctors").done(function (data) {
+
+            //});
+            //var container = $('#pagination-demo2');
+            //container.pagination({
+            //    dataSource: '../Doctors/GetDoctors',
+            //    locator: 'items',
+            //    totalNumber: 3,
+            //    pageSize: 1,
+            //    ajax: {
+            //        beforeSend: function () {
+            //            container.prev().html('Loading data from flickr.com ...');
+            //        }
+            //    },
+            //    callback: function (response, pagination) {
+            //        window.console && console.log(22, response, pagination);
+            //        var dataHtml = '<ul>';
+
+            //        $.each(response, function (index, item) {
+            //            dataHtml += '<li>' + item.username + '</li>';
+            //        });
+
+            //        dataHtml += '</ul>';
+
+            //        container.prev().html(dataHtml);
+            //    }
+            //})
+        }
+        function bookAppointmet(id, startDate, endDate, inputElement) {
+            $.confirm({
+                title: 'Alert',
+                content: 'Are you sure you want to book this appointment?',
+                buttons: {
+                    Yes: {
+                        text: 'Yes',
+                        btnClass: 'blue',
+                        action: function () {
+                            $.post("../Appointments/Book", { id: id, startDateTime: startDate, endDateTime: endDate }).done(function (data) {
+                                if (data.status === 1) {
+                                    M.toast({ html: data.message, classes: 'teal' });
+                                    $(inputElement).closest("div.col").remove();
+                                    //$("#txt_appointment_id").val(id);
+                                    //$("#txt_start_date_time").val(startDate);
+                                    //$("#txt_end_date_time").val(endDate);
+                                    //$("#modal_payment_gateway").modal("open");
+                                } else {
+                                    M.toast({ html: data.message, classes: 'red' });
+                                }
+                            });
+                        }
+                    },
+                    No: {
+                        text: 'No',
+                        btnClass: 'red',
+                    }
+                }
+            });
+        }
+    </script>
+}
+@*<div id="breadcrumbs-wrapper" data-image="~/app-assets/images/gallery/breadcrumb-bg.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m12 l12">
+                    <h5 class="breadcrumbs-title mt-0 mb-0"><span>Doctors</span></h5>
+                </div>
+            </div>
+        </div>
+    </div>*@
+<input id="txt_message" type="hidden" data-doctor-id="@ViewBag.DoctorId" value="@ViewBag.Message" />
+
+
+<div class="content-wrapper-before gradient-45deg-indigo-light-blue"></div>
+<div class="col s12 mt-1">
+    <div class="container">
+        <h5 class="white-text"><i class="material-icons left">search</i> Search Therapist</h5>
+        <div class="section">
+            <div class="row">
+                <div class="col s12 m3 l3 pr-0 animate fadeLeft">
+                    <div class="card">
+                        <div class="card-content">
+                            <form id="form_get_doctors" asp-action="GetDoctors" asp-controller="Doctors" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onGetDoctorsSuccess(data)">
+                                <input type="hidden" asp-for="GetDoctorsByFiltersRequestDto.UserId" value="@_sessionManager.GetUserId()" />
+                                <input type="hidden" asp-for="GetDoctorsByFiltersRequestDto.PageNumber" value="1" />
+                                <input type="hidden" asp-for="GetDoctorsByFiltersRequestDto.Latitude" />
+                                <input type="hidden" asp-for="GetDoctorsByFiltersRequestDto.Longitude" />
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <input type="text" asp-for="GetDoctorsByFiltersRequestDto.DoctorName">
+                                        <label asp-for="GetDoctorsByFiltersRequestDto.DoctorName">Search by name...</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <select class="browser-default" asp-for="GetDoctorsByFiltersRequestDto.SpecialtyLookupId" asp-items="Model.SpecialtyLookups">
+                                            <option value="">Select Speciality</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                @*<div class="row">
+                                    <div class="input-field col s12">
+                                        <input type="text" readonly onclick="chooseLocation()" asp-for="GetDoctorsByFiltersRequestDto.Address">
+                                        <label asp-for="GetDoctorsByFiltersRequestDto.Address">Location</label>
+                                    </div>
+                                </div>*@
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <button class="btn cyan waves-effect waves-light gradient-45deg-indigo-light-blue font-weight-900" type="submit">
+                                            Search
+                                            <i class="material-icons right">search</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col s12 m12 l9 pr-0 animate fadeRight">
+                    <div class="section" id="blog-list">
+                        <div id="doctors_detail" class="row"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content-overlay"></div>
+</div>
+@*<div id="modal_choose_location" class="modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-content upload-location">
+        <h4>Choose Location</h4>
+        <div class="row">
+            <div class="input-field col s12 m10 l10">
+                <input id="pac-input" type="text">
+            </div>
+            <div class="input-field col s12 m2 l2">
+                <button class="btn cyan waves-effect waves-light right gradient-45deg-indigo-light-blue font-weight-900" type="button" onclick="getLocation()">
+                    <i class="material-icons">my_location</i>
+                </button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <div id="GeoLocationErrorMsg" class="red-text"></div>
+                <div id="map"></div>
+                <h6 class="text-muted">Click on a location to select it. Drag the marker to change location.</h6>
+                <input type="hidden" id="address" placeholder="Address" value="" required>
+                <input type="hidden" id="latitude" placeholder="Latitude" value="" required>
+                <input type="hidden" id="longitude" placeholder="Longitude" value="" required>
+                <p class="modal-error red-text">Please select the location.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12 right">
+                <button class="btn cyan waves-effect waves-light right gradient-45deg-indigo-light-blue font-weight-900" type="button" onclick="addLocation()">
+                    Add Location
+                    <i class="material-icons right">add_location</i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>*@
+<div id="modal_payment_gateway" class="modal" data-backdrop="static" data-keyboard="false" style="width:480px;">
+    <div class="plans-container">
+        <div class="col s12 p-0">
+            <div class="card z-depth-1 animate fadeLeft mt-0 mb-0">
+                <div class="card-image teal waves-effect">
+                    <div class="card-title">@Configurations.ApplicationName</div>
+                    <div class="price">
+                        <sup>$</sup>@Configurations.AppointmentFee
+                        <sub>/ <span>Visit</span></sub>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <ul class="collection">
+                        <li class="collection-item">Appointment Fee</li>
+                    </ul>
+                </div>
+                <div class="card-action center-align">
+                    <form asp-controller="Stripe" asp-action="Charge" method="POST">
+                        <input type="hidden" id="txt_appointment_id" name="aptId" />
+                        <input type="hidden" id="txt_start_date_time" name="aptStartDateTime" />
+                        <input type="hidden" id="txt_end_date_time" name="aptEndDateTime" />
+
+                        <script src="https://checkout.stripe.com/checkout.js"
+                                class="stripe-button"
+                                data-key="@StripeConfigurations.PUBLISHABLE_KEY"
+                                data-name="IClinicNow"
+                                data-description="Appointment Fee"
+                                data-amount="@aptFee"
+                                data-currency="usd">
+                        </script>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

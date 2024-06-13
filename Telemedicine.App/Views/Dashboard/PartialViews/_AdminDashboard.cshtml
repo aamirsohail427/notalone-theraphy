@@ -1,0 +1,55 @@
+﻿@model Telemedicine.App.Models.DashboardViewModel
+@if (!(Model.AdminDashboardStatsDto is null))
+{
+    var item = Model.AdminDashboardStatsDto;
+
+    <!--card stats start-->
+    <div class="row">
+        <div class="col s12 m3">
+            <div class="card gradient-shadow gradient-45deg-indigo-blue animate fadeLeft">
+                <div class="card-content center">
+                    <i class="material-icons background-round white-text z-depth-5">people_outline</i>
+                    <h5 class="white-text lighten-4 uppercase mt-5">Doctors</h5>
+                    <p class="white-text lighten-4">@item.TotalDoctors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m3">
+            <div class="card gradient-shadow gradient-45deg-red-pink animate fadeRight">
+                <div class="card-content center">
+                    <i class="material-icons background-round white-text z-depth-5">feedback</i>
+                    <h5 class="white-text lighten-4 uppercase mt-5">Negative Feedbacks</h5>
+                    <p class="white-text lighten-4">@item.TotalNegativeFeedbacks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m3">
+            <div class="card gradient-shadow gradient-45deg-green-teal animate fadeRight">
+                <div class="card-content center">
+                    <i class="material-icons background-round white-text z-depth-5">attach_money</i>
+                    <h5 class="white-text lighten-4 uppercase mt-5">Total Revenue</h5>
+                    <p class="white-text lighten-4">$@String.Format("{0:0.00}", item.TotalRevenue)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m3">
+            <div class="card gradient-shadow gradient-45deg-blue-indigo animate fadeLeft">
+                <div class="card-content center">
+                    <i class="material-icons background-round white-text z-depth-5">people_outline</i>
+                    <h5 class="white-text uppercase mt-5">Patients</h5>
+                    <p class="white-text lighten-4">@item.TotalPatients</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--card stats end-->
+}
+<div class="row">
+    <div class="col s12">
+        <div class="section section-data-tables">
+            <div class="row">
+                <div id="users_detail" class="col s12"></div>
+            </div>
+        </div>
+    </div>
+</div>

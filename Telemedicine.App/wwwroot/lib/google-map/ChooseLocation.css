@@ -1,0 +1,105 @@
+.upload-location .btn {
+    box-shadow: 1px 2px 3px #6e6e6e;
+}
+.upload-location .submit-btn {
+    margin: 8px 0 0 10px;
+    float: right;
+}
+.upload-location .hidden-form {
+    display: inline;
+}
+
+#map {
+    width: 100%; 
+    height: 400px; 
+    margin-right:auto; 
+    margin-left:auto;
+    box-shadow: 0 0 3px rgba(0,0,0,0.3);
+    margin: 10px 0;
+}
+#ChooseLocationModal {
+    height: 650px;
+    max-height: unset;
+}
+.upload-location .modal-title {
+    display: inline-block;
+}
+.upload-location .close {
+    float: right;
+    background-color: transparent;
+    border: none;
+    font-size: 30px;
+    padding: 0;
+    margin-top: -10px;
+}
+/*.upload-location input[type=text] {
+    background-color: #fff;
+    font-family: Roboto;
+    font-size: 15px;
+    font-weight: 300;
+    padding: 6px 12px;
+    text-overflow: ellipsis;
+    border-radius: 5px;
+    border: 1px solid #9c9c9c;
+    margin-bottom: 10px;
+    height: 30px;
+}*/
+/*.upload-location input[type=text]:focus {
+    border: 2px solid #03a9f4;
+}*/
+#pac-input {
+    width: calc(100% - 285px);
+}
+.btn-get-location {
+    /*margin-top: 0px;
+    height: 30px;*/
+}
+#lat, #lng {
+    margin-right: 20px;
+    width: calc(50% - 70px);
+}
+.span-or{
+    margin: 0 10px;
+}
+@media(max-width: 568px){
+    #pac-input {
+        width: 100%;
+    }
+    .span-or {
+        display: block;
+        margin-bottom: 10px;
+    }
+    .btn-get-location {
+        width: 100%;
+        margin-bottom: 10px;;
+    }
+}
+.upload-location h5 {
+    margin: 15px 0 0px;
+    font-size: 18px;
+    display: inline-block;
+}
+.upload-location .modal-error {
+    color: red;
+    font-size: 18px;
+    display: none;
+    margin: 0;
+}
+#GeoLocationErrorMsg {
+    color: red;
+}
+.pac-container {
+    z-index: 10000 !important;
+}
+#GeoLocationErrorMsg{
+    display: none;
+    font-size: 18px;
+    color: #e00000;
+    background-color: #ffe9e9;
+    padding: 5px;
+    margin: 10px 0 20px 0;
+    border-radius: 5px;
+}
+#modal_choose_location {
+    max-height: 90%;
+}

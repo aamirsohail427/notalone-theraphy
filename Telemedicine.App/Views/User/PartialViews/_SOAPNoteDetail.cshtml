@@ -1,0 +1,61 @@
+﻿@model List<Telemedicine.Models.Dtos.ResponseDto.SOAPNoteResponseDto>
+@using Telemedicine.Utilities
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+<div class="section section-data-tInstitutionables">
+    <table class="striped">
+        <thead>
+            <tr>
+                <th class="width-20 left-align">Subjective</th>
+                <th class="width-20 left-align">Objective</th>
+                <th class="width-20 left-align">Assessment</th>
+                <th class="width-20 left-align">Plan</th>
+                @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                {
+                    @*<th class="width-20 right-align">Actions</th>*@
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                if (!(Model is null))
+                {
+                    if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                        <tr>
+                            <td class="width-20 left-align text-truncate">@item.Subjective</td>
+                            <td class="width-20 left-align text-truncate">@item.Objective</td>
+                            <td class="width-20 left-align text-truncate">@item.Assessment</td>
+                            <td class="width-20 left-align text-truncate">@item.Plans</td>
+                            @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                            {
+                                @*<td class="width-20 right-align">
+                                    <a href="javascript:void(0);" class="blue-text" onclick="getSOAPNoteById(@item.SOAPNoteId)"><i class="material-icons">edit</i></a>
+                                    <a href="javascript:void(0);" class="red-text" onclick="deleteSOAPNoteById(@item.SOAPNoteId)"><i class="material-icons">delete</i></a>
+                                </td>*@
+                            }
+                        </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td class="width-100 center-align" colspan="5">
+                                <span class="text-muted">No Clinical Note Found</span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td class="width-100 center-align" colspan="5">
+                            <span class="text-muted">No Clinical Note Found</span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,54 @@
+﻿@using Telemedicine.App.Controllers
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+
+@{
+    int userRoleId = _sessionManager.GetUserRoleId();
+    string username = _sessionManager.GetUsername();
+    string profilePicture = _sessionManager.GetProfilePicture();
+    if (string.IsNullOrEmpty(profilePicture))
+        profilePicture = "#";
+}
+<header class="page-topbar" id="header">
+    <div class="navbar navbar-fixed">
+        <nav class="navbar-main navbar-color nav-collapsible sideNav-lock navbar-light">
+            <div class="nav-wrapper">
+                <ul class="navbar-list left @*hide-on-med-and-down*@">
+                    <li id="up_coming_appointment"></li>
+                    @*<li class="@Html.IsSelected(actions: "Index", controllers: "Dashboard")"><a class="waves-effect waves-block waves-light tooltipped" data-position="bottom" data-tooltip="Dashboard" href="@Url.Action(nameof(DashboardController.Index),"Dashboard")">Dashboard</a></li>
+                    <li class="@Html.IsSelected(actions: "Index", controllers: "Appointments")"><a class="waves-effect waves-block waves-light tooltipped" data-position="bottom" data-tooltip="My Appointments" href="@Url.Action(nameof(AppointmentsController.Index),"Appointments")">My Appointments</a></li>
+                    @{
+                        if (userRoleId == Convert.ToInt32(UserRoleTypes.Client))
+                        {
+                            <li class="@Html.IsSelected(actions: "Index", controllers: "Doctors")"><a class="waves-effect waves-block waves-light tooltipped" data-position="bottom" data-tooltip="Book an Appointment" href="@Url.Action(nameof(DoctorsController.Index),"Doctors")">Book an Appointment</a></li>
+                        }
+                        if (userRoleId == Convert.ToInt32(UserRoleTypes.Therapist))
+                        {
+                            <li class="@Html.IsSelected(actions: "Index", controllers: "Patients")"><a class="waves-effect waves-block waves-light tooltipped" data-position="bottom" data-tooltip="My Clients" href="@Url.Action(nameof(PatientsController.Index),"Patients")">My Clients</a></li>
+                        }
+                    }*@
+                </ul>
+                <ul class="navbar-list right">
+                    <li class="hide-on-med-and-down"><a class="waves-effect waves-block waves-light toggle-fullscreen" href="javascript:void(0);"><i class="material-icons">settings_overscan</i></a></li>
+                    <li><a class="waves-effect waves-block waves-light notification-button" href="javascript:void(0);" data-target="notifications-dropdown"></a></li>
+                    <li><a class="waves-effect waves-block waves-light profile-button" href="javascript:void(0);" data-target="profile-dropdown"><span class="avatar-status avatar-online"><img src="@profilePicture" class="current-user-profile-picture" onerror="transformErrorImgToLettersAvatar(this, '@username', '40')" alt=""><i></i></span></a></li>
+                    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client) || _sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                    {
+                        @*<li><a class="waves-effect waves-block waves-light sidenav-trigger" href="#" data-target="slide-out-right"><i class="material-icons">message</i></a></li>*@
+                    }
+                </ul>
+                <!-- notifications-dropdown-->
+                <ul class="dropdown-content" id="notifications-dropdown">
+                    
+                </ul>
+                <!-- profile-dropdown-->
+                <ul class="dropdown-content" id="profile-dropdown">
+                    <li><a class="grey-text text-darken-1" href="@Url.Action(nameof(UserController.Profile),"User")"><i class="material-icons">person_outline</i> Profile</a></li>
+                    <li class="divider"></li>
+                    <li><a class="grey-text text-darken-1" href="@Url.Action(nameof(LoginController.Index),"Login")"><i class="material-icons">keyboard_tab</i> Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+</header>

@@ -1,0 +1,217 @@
+﻿@model Telemedicine.App.Models.UserViewModel
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+
+@{
+    int userRoleId = _sessionManager.GetUserRoleId();
+    string username = _sessionManager.GetUsername();
+    string profilePicture = _sessionManager.GetProfilePicture();
+    if (string.IsNullOrEmpty(profilePicture))
+        profilePicture = "#";
+}
+<!-- User Profile Feed -->
+<div class="col s12 m4 l3">
+    <div class="row mt-3">
+        <div class="col s12 grid">
+            <form id="form_profile_picture" asp-action="UpdateProfilePicture" asp-controller="User" method="post" enctype="multipart/form-data">
+                <figure class="effect-zoe z-depth-5">
+                    <img class="responsive-img current-user-profile-picture" width="120" src="@profilePicture" onerror="transformErrorImgToLettersAvatar(this, '@username', '120')" alt="">
+                    <figcaption>
+                        <p class="icon-links">
+                            <label for="ProfilePicture"><i class="material-icons">photo_camera</i></label>
+                            <input id="ProfilePicture" type="file" name="ProfilePicture" style="display:none;" accept=".png, .jpg, .jpeg" onchange="uploadProfilePicture()" data-val="true" />
+                        </p>
+                    </figcaption>
+                </figure>
+            </form>
+        </div>
+    </div>
+    <div class="row mt-10 center">
+        <div class="col s6">
+            <h6><i class="material-icons teal-text">cake</i></h6>
+            <p id="user_date_of_birth" class="m-0"></p>
+        </div>
+        <div class="col s6">
+            <h6><i class="material-icons blue-text">call</i></h6>
+            <p id="user_phone_number" class="m-0"></p>
+        </div>
+    </div>
+    <div class="row mt-3 center">
+        <div class="col s6">
+            <h6><i class="material-icons teal-text">person</i></h6>
+            <p id="user_gender" class="m-0"></p>
+        </div>
+        <div class="col s6">
+            <h6><i class="material-icons blue-text">language</i></h6>
+            <p id="user_preferred_language" class="m-0"></p>
+        </div>
+        <div class="col s12">
+            <hr class="mt-5">
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col s12">
+            <div class="row">
+                <div class="col s12">
+                    <h6>Bio</h6>
+                    <p id="user_bio"></p>
+                </div>
+            </div>
+            <hr class="mt-5">
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col s12">
+            <div id="user_current_location"></div>
+        </div>
+    </div>
+</div>
+<!-- User Post Feed -->
+<div class="col s12 m8 l9">
+    <div class="container">
+        <div class="card user-card-negative-margin z-depth-0" id="feed">
+            <div class="card-content card-border-gray">
+                <div class="row">
+                    <div class="col s12">
+                        <h5>@username's Profile</h5>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col s12">
+                        <ul id="tabs-swipe-demo" class="tabs">
+                            <li class="tab col s12 m3 l3"><a href="#tab_personal" class="active"><i class="material-icons">info_outline</i> Personal</a></li>
+                            <li class="tab col s12 m3 l3"><a href="#tab_medical_chart"><i class="material-icons">note_add</i> Clinical Notes</a></li>
+                            <li class="tab col s12 m3 l3"><a href="#tab_reports"><i class="material-icons">attach_file</i> Add Files</a></li>
+                            <li class="tab col s12 m3 l3"><a href="#tab_reset_password"><i class="material-icons">lock_open</i> Reset Password</a></li>
+                        </ul>
+                        <div id="tab_personal" class="col s12 carousel carousel-item"></div>
+                        <div id="tab_reset_password" class="col s12 carousel carousel-item">
+                            <partial name="~/Views/User/PartialViews/_ResetPassword.cshtml" />
+                        </div>
+                        <div id="tab_medical_chart" class="col s12 carousel carousel-item">
+                            <div class="row mt-1">
+                                <div class="col s12 m6 l6">
+                                    <h6>Clinical Notes</h6>
+                                </div>
+                                <div class="col s12 m6 l6">
+                                    @if (userRoleId == Convert.ToInt32(UserRoleTypes.Therapist))
+                                    {
+                                        <a class="btn-floating mb-1 waves-effect waves-light mr-1 right modal-trigger gradient-45deg-indigo-light-blue" href="#modal_soap_notes">
+                                            <i class="material-icons">add</i>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                            <div class="row ">
+                                <div id="soap_note_detail" class="col s12"></div>
+                            </div>
+                        </div>
+                        <div id="tab_reports" class="col s12 carousel carousel-item">
+                            <div class="row mt-1">
+                                <div class="col s12 m6 l6">
+                                    <h6>Attach Records</h6>
+                                </div>
+                                <div class="col s12 m6 l6">
+                                    <a class="btn-floating mb-1 waves-effect waves-light mr-1 right modal-trigger gradient-45deg-indigo-light-blue" href="#modal_reports" onclick="$('#form_file .input-field .file-field').css('display', 'block')">
+                                        <i class="material-icons">add</i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row ">
+                                <div id="file_detail" class="col s12"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Today Highlight -->
+<div id="modal_reports" class="modal modal-fixed-footer" data-backdrop="static" data-keyboard="false">
+    <form id="form_file" asp-action="Save" asp-controller="PatientAttachment" method="post">
+        <input type="hidden" asp-for="PatientAttachmentRequestDto.PatientAttachmentId" />
+        <div class="modal-content">
+            <h4>Reports</h4>
+            <div class="row">
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" asp-for="PatientAttachmentRequestDto.Title">
+                    <label class="center-align" asp-for="PatientAttachmentRequestDto.Title">Title</label>
+                    <span class="red-text" asp-validation-for="PatientAttachmentRequestDto.Title"></span>
+                </div>
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" class="date-formatter pickadate" placeholder="MM/DD/YYYY" asp-for="PatientAttachmentRequestDto.AttachmentDate" asp-format="{0:MM/dd/yyyy}">
+                    <label class="center-align" asp-for="PatientAttachmentRequestDto.AttachmentDate">Date</label>
+                    <span class="red-text" asp-validation-for="PatientAttachmentRequestDto.AttachmentDate"></span>
+                </div>
+                <div class="input-field col s12 m4 l4">
+                    <div class="file-field input-field">
+                        <div class="btn green-success">
+                            <span>File</span>
+                            <input type="file" asp-for="PatientAttachmentRequestDto.Url">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text" placeholder="Upload one or more files">
+                        </div>
+                    </div>
+                    <span class="red-text" asp-validation-for="PatientAttachmentRequestDto.Url"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" asp-for="PatientAttachmentRequestDto.Notes">
+                    <label class="center-align" asp-for="PatientAttachmentRequestDto.Notes">Notes</label>
+                    <span class="red-text" asp-validation-for="PatientAttachmentRequestDto.Notes"></span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+            <button type="submit" class="waves-effect waves-green btn-flat">Save Changes</button>
+        </div>
+    </form>
+</div>
+<div id="modal_soap_notes" class="modal" data-backdrop="static" data-keyboard="false">
+    <form id="form_soap_note" asp-action="Save" asp-controller="SOAPNote" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onSOAPNoteSuccess(data)">
+        <div class="modal-content">
+            <h4>Soap Notes</h4>
+
+            <input type="hidden" asp-for="SOAPNoteRequestDto.SOAPNoteId" />
+            <input type="hidden" asp-for="SOAPNoteRequestDto.AppointmentId" />
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" asp-for="SOAPNoteRequestDto.Subjective">
+                    <label class="center-align" asp-for="SOAPNoteRequestDto.Subjective">Subjective</label>
+                    <span class="red-text" asp-validation-for="SOAPNoteRequestDto.Subjective"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" asp-for="SOAPNoteRequestDto.Objective">
+                    <label class="center-align" asp-for="SOAPNoteRequestDto.Objective">Objective</label>
+                    <span class="red-text" asp-validation-for="SOAPNoteRequestDto.Objective"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" asp-for="SOAPNoteRequestDto.Assessment">
+                    <label class="center-align" asp-for="SOAPNoteRequestDto.Assessment">Assessment</label>
+                    <span class="red-text" asp-validation-for="SOAPNoteRequestDto.Assessment"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" asp-for="SOAPNoteRequestDto.Plans">
+                    <label class="center-align" asp-for="SOAPNoteRequestDto.Plans">Plan</label>
+                    <span class="red-text" asp-validation-for="SOAPNoteRequestDto.Plans"></span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+            <button type="submit" class="waves-effect waves-green btn-flat">Save Changes</button>
+        </div>
+    </form>
+</div>

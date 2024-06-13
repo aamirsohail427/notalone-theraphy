@@ -1,0 +1,82 @@
+﻿@model Telemedicine.App.Models.RegisterViewModel
+@using Telemedicine.App.Controllers
+@using Telemedicine.Utilities
+<div class="z-depth-5 card-panel register-card">
+    <form class="login-form" asp-action="Register" asp-controller="Register" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onRegistrationSuccess(data)">
+        <input type="hidden" asp-for="RegisterRequestDto.UserRoleId" />
+        <input type="hidden" name="timezone" value="" />
+        <div class="row">
+            <div class="input-field col s12">
+                @*<img src="~/logo.png" alt="KareiiLink" class="logo ml-3" />*@
+                <h5><img src="~/big-logo.jpg" class="img-circle-css" /> @Configurations.ApplicationName</h5>
+                <p>Join our community !</p>
+            </div>
+        </div>
+        <div class="row margin">
+            <div class="input-field col s12">
+                <i class="material-icons prefix pt-2">person_outline</i>
+                <input type="text" asp-for="RegisterRequestDto.FirstName">
+                <label class="center-align" asp-for="RegisterRequestDto.FirstName"> First Name </label>
+                <span class="red-text" asp-validation-for="RegisterRequestDto.FirstName"></span>
+            </div>
+        </div>
+        <div class="row margin">
+            <div class="input-field col s12">
+                <i class="material-icons prefix pt-2">person_outline</i>
+                <input type="text" asp-for="RegisterRequestDto.MiddleName">
+                <label class="center-align" asp-for="RegisterRequestDto.MiddleName"> Middle Name </label>
+                <span class="red-text" asp-validation-for="RegisterRequestDto.MiddleName"></span>
+            </div>
+        </div>
+        <div class="row margin">
+            <div class="input-field col s12">
+                <i class="material-icons prefix pt-2">person_outline</i>
+                <input type="text" asp-for="RegisterRequestDto.LastName">
+                <label class="center-align" asp-for="RegisterRequestDto.LastName"> Last Name </label>
+                <span class="red-text" asp-validation-for="RegisterRequestDto.LastName"></span>
+            </div>
+        </div>
+        <div class="row margin">
+            <div class="input-field col s12">
+                <i class="material-icons prefix pt-2">call</i>
+                <input type="text" asp-for="RegisterRequestDto.Phone">
+                <label class="center-align" asp-for="RegisterRequestDto.Phone"> Phone </label>
+                <span class="red-text" asp-validation-for="RegisterRequestDto.Phone"></span>
+            </div>
+        </div>
+        <div class="row margin">
+            <div class="input-field col s12">
+                <i class="material-icons prefix pt-2">mail_outline</i>
+                <input type="email" asp-for="RegisterRequestDto.Email">
+                <label class="center-align" asp-for="RegisterRequestDto.Email">Email</label>
+                <span class="red-text" asp-validation-for="RegisterRequestDto.Email"></span>
+            </div>
+        </div>
+        <div class="row margin">
+            <div class="input-field col s12">
+                <i class="material-icons prefix pt-2">lock_outline</i>
+                <input type="password" asp-for="RegisterRequestDto.Password">
+                <label class="center-align" asp-for="RegisterRequestDto.Password">Password</label>
+                <span class="red-text" asp-validation-for="RegisterRequestDto.Password"></span>
+            </div>
+        </div>
+        <div class="row margin">
+            <div class="input-field col s12">
+                <i class="material-icons prefix pt-2">lock_outline</i>
+                <input type="password" asp-for="RegisterRequestDto.ConfirmPassword">
+                <label asp-for="RegisterRequestDto.ConfirmPassword">Confirm Password</label>
+                <span class="red-text" asp-validation-for="RegisterRequestDto.ConfirmPassword"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12">
+                <button type="submit" class="btn waves-effect waves-light gradient-45deg-indigo-light-blue ml-2 font-weight-900">Register</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12">
+                <p class="margin medium-small"><a href="@Url.Action(nameof(LoginController.Index),"Login")">Already have an account? Login</a></p>
+            </div>
+        </div>
+    </form>
+</div>

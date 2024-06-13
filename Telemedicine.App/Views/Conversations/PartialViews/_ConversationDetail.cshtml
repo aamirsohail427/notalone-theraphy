@@ -1,0 +1,92 @@
+﻿@model List<Telemedicine.Models.Dtos.ResponseDto.ConversationResponseDto>
+@using Telemedicine.Utilities
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+
+@{
+    var fromUserName = "";
+    long? parentId = 0;
+    long userId = 0;
+    if (!(Model is null))
+    {
+        if (Model.Any())
+        {
+            fromUserName = Model.Where(x => x.ParentId is null).FirstOrDefault().FromUserName == _sessionManager.GetUsername() ? Model.Where(x => x.ParentId is null).FirstOrDefault().ToUserName : Model.Where(x => x.ParentId is null).FirstOrDefault().FromUserName;
+            parentId = Model.Where(x => x.ParentId is null).FirstOrDefault().ConversationId;
+            userId = Model.Where(x => x.ParentId is null).FirstOrDefault().FromUserId == _sessionManager.GetUserId() ? Model.Where(x => x.ParentId is null).FirstOrDefault().ToUserId : Model.Where(x => x.ParentId is null).FirstOrDefault().FromUserId;
+
+        }
+    }
+}
+<!-- Chat header -->
+<div class="chat-header animate fadeUp">
+    <div class="row valign-wrapper">
+        <div class="col media-image online pr-0">
+            <img src="#" onerror="transformErrorImgToLettersAvatar(this, '@fromUserName', '50')" alt="" class="circle z-depth-2 responsive-img">
+        </div>
+        <div class="col">
+            <p class="m-0 blue-grey-text text-darken-4 font-weight-700 sender-detail" data-to-user-id="@userId" data-parent-id="@parentId">@fromUserName</p>
+        </div>
+    </div>
+
+</div>
+<!--/ Chat header -->
+<!-- Chat content area -->
+<div class="chat-area animate fadeUp">
+    <div class="chats">
+        @foreach (var rec in Model)
+        {
+            if (rec.FromUserId == _sessionManager.GetUserId())
+            {
+                if (!string.IsNullOrEmpty(rec.Message))
+                {
+                    <div class="chat chat-right">
+                        <div class="chat-avatar">
+                            <a class="avatar">
+                                <img src="#" onerror="transformErrorImgToLettersAvatar(this, '@_sessionManager.GetUsername()', '40')" class="circle" alt="avatar" />
+                            </a>
+                        </div>
+                        <div class="chat-body">
+                            <div class="chat-text">
+                                <p>
+                                    @rec.Message
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(rec.Message))
+                {
+                    <div class="chat">
+                        <div class="chat-avatar">
+                            <a class="avatar">
+                                <img src="#" onerror="transformErrorImgToLettersAvatar(this, '@rec.FromUserName', '40')" class="circle" alt="avatar" />
+                            </a>
+                        </div>
+                        <div class="chat-body">
+                            <div class="chat-text">
+                                <p>
+                                    @rec.Message
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            }
+        }
+
+
+    </div>
+</div>
+<!--/ Chat content area -->
+<!-- Chat footer <-->
+<div class="chat-footer">
+    <form onsubmit="enter_chat();" action="javascript:void(0);" class="chat-input">
+        <input type="text" placeholder="Type message here.." class="message mb-0">
+        <button class="btn waves-effect waves-light send  gradient-45deg-indigo-light-blue font-weight-900">Send</button>
+    </form>
+</div>
+<!--/ Chat footer -->

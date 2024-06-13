@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Telemedicine.Models.Dtos.BaseDto;
+
+namespace Telemedicine.Models.Dtos.ResponseDto
+{
+    public class PatientAttachmentResponseDto : PatientAttachmentBaseDto
+    {
+        public long? ModifiedById { get; set; }
+        public DateTime? ModifiedDateTime { get; set; }
+    }
+}

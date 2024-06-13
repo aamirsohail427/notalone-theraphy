@@ -1,0 +1,68 @@
+#ajax_preloader {
+    position: fixed; /* Sit on top of the page content */
+    display: none; /* Hidden by default */
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    z-index: 99999; /* Specify a stack order in case you're using a different order for other elements */
+    cursor: progress; /* Add a pointer on hover */
+}
+
+#ajax_preloader .preloader-container {
+    margin: auto auto;
+    text-align: center;
+    height: 100%;
+}
+
+#ajax_preloader .preloader-container .pre-wrapper {
+    display: flex;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%); /* for IE 9 */
+    -webkit-transform: translate(-50%, -50%);
+}
+
+@media only screen and (min-width: 993px) {
+    #main, .sideNav-lock .nav-wrapper .navbar-list.left {
+        padding-left: 250px;
+    }
+}
+
+.sidenav li a.active {
+    background: -webkit-linear-gradient(45deg, #fff, #fff);
+    background: linear-gradient(45deg, #fff, #fff);
+    box-shadow: 3px 3px 20px 0 rgba(255, 255, 255, .5);
+}
+
+.sidenav li a.active, .sidenav li a.active i {
+    color: #000 !important;
+}
+.navbar .profile-button span.avatar-status {
+    line-height: 30px;
+}
+.avatar-status {
+    width: 40px;
+}
+.gradient-45deg-indigo-light-blue {
+    background: #1d3853;
+    background: -webkit-linear-gradient(45deg, #1d3853, #ebd9cc) !important;
+    background: linear-gradient(45deg, #1d3853, #ebd9cc) !important;
+}
+.img-circle-css {
+    max-width: 100px !important;
+    width: 100%;
+    max-height: 100px !important;
+    height: 100%;
+    vertical-align: middle;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    object-fit: cover;
+}

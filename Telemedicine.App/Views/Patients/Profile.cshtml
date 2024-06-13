@@ -1,0 +1,267 @@
+﻿@model Telemedicine.Models.Dtos.ResponseDto.PatientProfileDetailResponseDto
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+
+@{
+    ViewData["Title"] = "Profile";
+}
+@section styles{
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/magnific-popup/magnific-popup.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/user-profile-page.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/hover-effects/media-hover-effects.css">
+    <link href="~/lib/google-map/ChooseLocation.css" rel="stylesheet" />
+    <style type="text/css">
+        .grid figure {
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        figure.effect-zoe p.icon-links a {
+            float: none;
+        }
+
+            figure.effect-zoe p.icon-links a i.material-icons {
+                font-size: 40px;
+                color: #efefef;
+                cursor: pointer;
+            }
+
+        figure.effect-zoe p.icon-links label i.material-icons {
+            font-size: 40px;
+            color: #efefef;
+            cursor: pointer;
+        }
+
+        figure.effect-zoe figcaption {
+            background: #0c0c0c70;
+        }
+
+        .grid figure p {
+            font-size: 100%;
+        }
+
+        .carousel.carousel-slider .carousel-item {
+            min-height: calc(100vh - 116px);
+        }
+
+        #pac-input {
+            /*width: calc(100% - 100px);*/
+            width: 100% !important;
+        }
+
+            #pac-input[type=text]:not(.browser-default):focus:not([readonly]) {
+                border-bottom: none !important;
+                box-shadow: none !important;
+            }
+
+        .image-profile-picture-css {
+            max-width: 120px !important;
+            min-width: 120px !important;
+            width: 100%;
+            max-height: 120px !important;
+            min-height: 120px !important;
+            height: 100% !important;
+            vertical-align: middle;
+            /*            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;*/
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+
+        #user_current_location {
+            width: 100%;
+            height: 400px;
+            margin-right: auto;
+            margin-left: auto;
+            box-shadow: 0 0 3px rgba(0,0,0,0.3);
+            margin: 10px 0;
+        }
+
+        .tabs-content.carousel.carousel-slider {
+            min-height: 720px;
+        }
+
+        div.display-flex img {
+            max-width: 50px !important;
+            min-width: 50px !important;
+            width: 100%;
+            max-height: 50px !important;
+            min-height: 50px !important;
+            height: 100% !important;
+            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+
+        .feedback-description {
+            min-height: 80px;
+            max-height: 80px;
+            height: 100%;
+            overflow: auto;
+            display: block;
+        }
+
+            .feedback-description::-webkit-scrollbar-track {
+                -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+                /*border-radius: 10px;*/
+                background-color: #F5F5F5;
+            }
+
+            .feedback-description::-webkit-scrollbar {
+                width: 3px;
+                /*background-color: #F5F5F5;*/
+            }
+
+            .feedback-description::-webkit-scrollbar-thumb {
+                /*border-radius: 10px;*/
+                -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+                background-color: #f2f4f8;
+            }
+    </style>
+}
+@section scripts{
+    <script src="~/app-assets/vendors/magnific-popup/jquery.magnific-popup.min.js"></script>
+    <script src="~/app-assets/vendors/imagesloaded.pkgd.min.js"></script>
+    <script src="~/app-assets/vendors/masonry.pkgd.min.js"></script>
+    <script src="~/app-assets/js/scripts/media-hover-effects.js"></script>
+    <script src="~/app-assets/vendors/formatter/jquery.formatter.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQcmSvCH5unhfQij4tZg5qKwnVqcIv7ME&libraries=places&callback=initMap" async defer></script>
+    <script src="~/lib/google-map/ChooseLocation.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+        });
+    </script>
+}
+<div class="content-wrapper-before gradient-45deg-indigo-light-blue"></div>
+@{
+    if (!(Model is null))
+    {
+        string profilePicture = "#";
+        if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+            profilePicture = AzureConfigurations.AZURE_BLOB_BASE_URL + Model.ProfilePictureUrl;
+        <input id="pac-input" type="hidden" />
+        <input id="address" type="hidden" />
+        <input id="latitude" type="hidden" value="@Model.Latitude" />
+        <input id="longitude" type="hidden" value="@Model.Longitude" />
+        <div class="col s12">
+            <div class="container">
+                <div class="section" id="user-profile">
+                    <div class="row">
+                        <!-- User Profile Feed -->
+                        <div class="col s12 m4 l3">
+                            <div class="row mt-3">
+                                <div class="col s12 grid">
+                                    <figure class="effect-zoe z-depth-5">
+                                        <img class="responsive-img current-user-profile-picture image-profile-picture-css" width="120" src="@profilePicture" onerror="transformErrorImgToLettersAvatar(this, '@Model.FirstName @Model.LastName', '120')" alt="">
+                                    </figure>
+                                </div>
+                            </div>
+                            @*<div class="row mt-10 center">
+                                <div class="col s6">
+                                    <h6><i class="material-icons teal-text">cake</i></h6>
+                                    @if (Model.DateOfBirth.HasValue)
+                                    {
+                                        <p class="m-0">@Model.DateOfBirth.Value.ToFormatDate()</p>
+                                    }
+                                </div>
+                                <div class="col s6">
+                                    <h6><i class="material-icons blue-text">call</i></h6>
+                                    @if (!string.IsNullOrEmpty(Model.Phone))
+                                    {
+                                        <p class="m-0">@Model.Phone</p>
+                                    }
+                                </div>
+                            </div>*@
+                            <div class="row mt-10 center">
+                                <div class="col s6">
+                                    <h6><i class="material-icons teal-text">person</i></h6>
+                                    @if (Model.GenderId.HasValue)
+                                    {
+                                        if (!(Model.Gender is null))
+                                        {
+                                            <p class="m-0">@Model.Gender.LongTitle</p>
+                                        }
+                                    }
+                                </div>
+                                <div class="col s6">
+                                    <h6><i class="material-icons blue-text">language</i></h6>
+                                    @if (Model.PreferredLanguageTypeId.HasValue)
+                                    {
+                                        if (!(Model.PreferredLanguageType is null))
+                                        {
+                                            <p class="m-0">@Model.PreferredLanguageType.LongTitle</p>
+                                        }
+                                    }
+                                </div>
+                                <div class="col s12">
+                                    <hr class="mt-5">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col s12">
+                                    <div class="row">
+                                        <div class="col s12">
+                                            <h6>Bio</h6>
+                                            @if (!string.IsNullOrEmpty(Model.Bio))
+                                            {
+                                                <p>@Model.Bio</p>
+                                            }
+                                        </div>
+                                    </div>
+                                    <hr class="mt-5">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col s12">
+                                    <div id="map"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- User Post Feed -->
+                        <div class="col s12 m8 l9">
+                            <div class="container">
+                                <div class="card user-card-negative-margin z-depth-0" id="feed">
+                                    <div class="card-content card-border-gray">
+                                        <div class="row">
+                                            <div class="col s12">
+                                                <h5>@Model.FirstName @Model.LastName's Profile</h5>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-1">
+                                            <div class="col s12">
+                                                <h6>Clinical Notes</h6>
+                                            </div>
+                                            <div class="col s12">
+                                                <partial name="~/Views/User/PartialViews/_SOAPNoteDetail.cshtml" model="Model.SOAPNotes" />
+                                            </div>
+                                            <div class="col s12">
+                                                <hr class="mt-5">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-1">
+                                            <div class="col s12">
+                                                <h6>Attach Records</h6>
+                                            </div>
+                                            <div class="col s12">
+                                                <partial name="~/Views/User/PartialViews/_FileDetail.cshtml" model="Model.PatientAttachmentsCreatedBy" />
+                                            </div>
+                                            <div class="col s12">
+                                                <hr class="mt-5">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-overlay"></div>
+            </div>
+        </div>
+    }
+}
+

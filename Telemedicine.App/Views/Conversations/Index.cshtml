@@ -1,0 +1,181 @@
+﻿
+@{
+    ViewData["Title"] = "Conversations";
+}
+@section styles{
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/app-chat.css">
+    <style>
+        .dot {
+            height: 10px;
+            width: 10px;
+            background-color: red;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+}
+@section scripts{
+    @*<script src="~/app-assets/js/scripts/app-chat.js"></script>*@
+    <script type="text/javascript">
+        var parentId = 0;
+        var toUserId = 0;
+        function getChatUsers() {
+            return new Promise(function (resolve, reject) {
+                $.get('../Conversations/GetConversationUsers', function (data, status) {
+                    $('.chat-users').html(data);
+                    resolve(true);
+                });
+            });
+        }
+        function getConversationDetail() {
+            return getChatUsers()
+                .then(function () {
+                    parentId = $('.delay-1').attr('data-parent-id');
+                    $.get('../Conversations/GetConversationByParentId?ParentId=' + parentId, function (data, status) {
+                        $('.chat-content-area').html(data);
+                        initChat();
+                    });
+                });
+        }
+
+        $(document).ready(function () {
+            getConversationDetail();
+        });
+        function initChat() {
+            "use strict";
+
+            // Sidenav
+            if ($(window).width() > 900) {
+                $("#chat-sidenav").removeClass("sidenav");
+            }
+
+            // Pefectscrollbar for sidebar and chat area
+            if ($(".sidebar-chat").length > 0) {
+                var ps_sidebar_chat = new PerfectScrollbar(".sidebar-chat", {
+                    theme: "dark"
+                });
+            }
+
+            if ($(".chat-area").length > 0) {
+                var ps_chat_area = new PerfectScrollbar(".chat-area", {
+                    theme: "dark"
+                });
+            }
+
+            // Close other sidenav on click of any sidenav
+            $(".sidenav-trigger").on("click", function () {
+                if ($(window).width() < 960) {
+                    $(".sidenav").sidenav("close");
+                    $(".app-sidebar").sidenav("close");
+                }
+            });
+
+            // Toggle class of sidenav
+            $("#chat-sidenav").sidenav({
+                onOpenStart: function () {
+                    $("#sidebar-list").addClass("sidebar-show");
+                },
+                onCloseEnd: function () {
+                    $("#sidebar-list").removeClass("sidebar-show");
+                }
+            });
+
+            // Favorite star click
+            $(".favorite i").on("click", function () {
+                $(this).toggleClass("amber-text");
+            });
+
+            // For chat sidebar on small screen
+            if ($(window).width() < 900) {
+                $(".app-chat .sidebar-left.sidebar-fixed").removeClass("animate fadeUp animation-fast");
+                $(".app-chat .sidebar-left.sidebar-fixed .sidebar").removeClass("animate fadeUp");
+            }
+
+            // chat search filter
+            $("#chat_filter").on("keyup", function () {
+                $('.chat-user').css('animation', 'none')
+                var value = $(this).val().toLowerCase();
+                if (value != "") {
+                    $(".sidebar-chat .chat-list .chat-user").filter(function () {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                    });
+                    var tbl_row = $(".chat-user:visible").length; //here tbl_test is table name
+
+                    //Check if table has row or not
+                    if (tbl_row == 0) {
+                        if (!$(".no-data-found").hasClass('show')) {
+                            $(".no-data-found").addClass('show');
+                        }
+                    }
+                    else {
+                        $(".no-data-found").removeClass('show');
+                    }
+                }
+                else {
+                    // if search filter box is empty
+                    $(".sidebar-chat .chat-list .chat-user").show();
+                }
+            });
+
+            $(".chat-area").scrollTop($(".chat-area > .chats").height());
+            // for rtl
+            if ($("html[data-textdirection='rtl']").length > 0) {
+                // Toggle class of sidenav
+                $("#chat-sidenav").sidenav({
+                    edge: "right",
+                    onOpenStart: function () {
+                        $("#sidebar-list").addClass("sidebar-show");
+                    },
+                    onCloseEnd: function () {
+                        $("#sidebar-list").removeClass("sidebar-show");
+                    }
+                });
+            }
+            $(window).on("resize", function () {
+                if ($(window).width() > 899) {
+                    $("#chat-sidenav").removeClass("sidenav");
+                }
+
+                if ($(window).width() < 900) {
+                    $("#chat-sidenav").addClass("sidenav");
+                }
+            });
+        }
+    </script>
+}
+
+<div class="content-wrapper-before  gradient-45deg-indigo-light-blue"></div>
+<div class="col s12">
+    <div class="container">
+        <div class="chat-application">
+            <div class="chat-content-head">
+                <div class="header-details">
+                    <h5 class="m-0 sidebar-title white-text"><i class="material-icons app-header-icon text-top left">message</i> Conversations</h5>
+                </div>
+            </div>
+            <div class="app-chat">
+                <div class="content-area content-right">
+                    <div class="app-wrapper">
+                        <!-- Sidebar menu for small screen -->
+                        <a href="#" data-target="chat-sidenav" class="sidenav-trigger hide-on-large-only">
+                            <i class="material-icons">menu</i>
+                        </a>
+                        <!--/ Sidebar menu for small screen -->
+
+                        <div class="card card card-default scrollspy border-radius-6 fixed-width">
+                            <div class="card-content chat-content p-0 ">
+                                <!-- Sidebar Area -->
+                                <div class="chat-users"></div>
+                                <!--/ Sidebar Area -->
+                                <!-- Content Area -->
+                                <div class="chat-content-area"></div>
+                                <!--/ Content Area -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content-overlay"></div>
+</div>

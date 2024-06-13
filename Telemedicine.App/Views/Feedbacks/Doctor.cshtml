@@ -1,0 +1,174 @@
+﻿@model Telemedicine.App.Models.FeedbackViewModel
+@using Telemedicine.Utilities
+@{
+    ViewData["Title"] = "Doctor";
+}
+@section styles{
+    <link href="~/app-assets/vendors/rateYo/jquery.rateyo.min.css" rel="stylesheet" />
+    <link href="~/lib/google-map/ChooseLocation.css" rel="stylesheet" />
+    <style type="text/css"></style>
+}
+@section scripts{
+    <script src="~/app-assets/vendors/rateYo/jquery.rateyo.min.js"></script>
+    @*<script src="~/app-assets/js/scripts/extra-components-ratings.min.js"></script>*@
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQcmSvCH5unhfQij4tZg5qKwnVqcIv7ME&libraries=places&callback=initMap" async defer></script>
+    <script src="~/lib/google-map/ChooseLocation.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $(".num-rate").rateYo({
+                onChange: function (rating, rateYoInstance) {
+                    // $(this).prev().text(rating);
+                    $(this).attr("data-tooltip", rating);
+                    $("#FeedbackRequestDto_Rating").val(rating);
+                }
+            });
+        });
+        function onSaveFeedbackSuccess(data) {
+            if (data.status === 1) {
+                M.toast({ html: data.message, classes: 'teal' });
+                $(".num-rate").attr("data-tooltip", 0).trigger("change");
+                resetForm("#form_doctor_feedback");
+                window.location.href = '@Url.Action("Index","Feedbacks")';
+            } else {
+                M.toast({ html: data.message, classes: 'red' });
+            }
+        }
+    </script>
+}
+<div class="content-wrapper-before gradient-45deg-indigo-light-blue"></div>
+<div class="col s12 mt-1">
+    <div class="container">
+        <h5 class="white-text"><i class="material-icons left">feedback</i> Doctor Feedback</h5>
+        <small class="white-text">Tell us your opinion about this doctor</small>
+        <div class="section users-view">
+            @if (Model.UserResponseDto is null)
+            {
+                <div class="card-panel">
+                    <div class="row">
+                        <div class="col s12">
+                            <p class="red-text">No Doctor Found</p>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                var user = Model.UserResponseDto;
+                string profilePicture = "#";
+                if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+                    profilePicture = AzureConfigurations.AZURE_BLOB_BASE_URL + user.ProfilePictureUrl;
+
+                <div class="row">
+                    <div class="col s12 m3 l3">
+                        <!-- users view media object start -->
+                        <div class="card-panel">
+                            <div class="row">
+                                <div class="col s12">
+                                    <div class="display-flex media">
+                                        <a href="javascript:voi(0);" class="avatar">
+                                            <img src="@profilePicture" alt="@user.FirstName @user.LastName" class="z-depth-5 circle" height="64" width="64">
+                                        </a>
+                                        <div class="media-body ml-3 mt-1">
+                                            <h5 class="media-heading">
+                                                <span class="users-view-name">@user.FirstName @user.LastName</span>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-10 mt-10">
+                                <div class="col s12 m6 l6 center">
+                                    <div class="row">
+                                        <div class="col s12">
+                                            <i class="material-icons">cake</i>
+                                        </div>
+                                        @if (user.DateOfBirth.HasValue)
+                                        {
+                                            <div class="col s12">
+                                                @user.DateOfBirth.Value.ToFormatDate()
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col s12 m6 l6 center">
+                                    <div class="row">
+                                        <div class="col s12">
+                                            <i class="material-icons">call</i>
+                                        </div>
+                                        <div class="col s12">
+                                            @user.Phone
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-10">
+                                <div class="col s12">
+                                    <h6 class="text-muted">Bio</h6>
+                                </div>
+                                <div class="col s12">
+                                    @user.Bio
+                                </div>
+                            </div>
+                            <div class="row mb-10">
+                                <div class="col s12">
+                                    <h6 class="text-muted">Address</h6>
+                                </div>
+                                <div class="col s12">
+                                    <input id="pac-input" type="hidden" />
+                                    <input id="address" type="hidden" />
+                                    <input id="latitude" type="hidden" value="@user.Latitude" />
+                                    <input id="longitude" type="hidden" value="@user.Longitude" />
+                                    <div id="map"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- users view media object ends -->
+                    </div>
+                    <div class="col s12 m9 l9">
+                        <!-- users view card data start -->
+                        <div class="card-panel">
+                            <form id="form_doctor_feedback" asp-action="Save" asp-controller="Feedbacks" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onSaveFeedbackSuccess(data)">
+                                <input type="hidden" asp-for="FeedbackRequestDto.Rating" value="0" />
+                                <input type="hidden" asp-for="FeedbackRequestDto.ToUserId" value="@user.UserId" />
+                                <div class="row">
+                                    <div class="input-field col s12 pl-0">
+                                        <div class="num-rate" data-rateyo-full-star="true"></div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="row">
+                                        <div class="input-field col s12">
+                                            <input type="text" asp-for="FeedbackRequestDto.Title">
+                                            <label class="center-align" asp-for="FeedbackRequestDto.Title">Subject</label>
+                                            <span class="red-text" asp-validation-for="FeedbackRequestDto.Title"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="row">
+                                        <div class="input-field col s12">
+                                            <input type="text" asp-for="FeedbackRequestDto.Description">
+                                            <label class="center-align" asp-for="FeedbackRequestDto.Description">Description</label>
+                                            <span class="red-text" asp-validation-for="FeedbackRequestDto.Description"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col s12 right-align pr-0">
+                                        <button class="btn mb-1 waves-effect waves-light teal" type="submit">
+                                            Submit Feedback
+                                            <i class="material-icons right">send</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- users view card data ends -->
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="content-overlay"></div>
+</div>
+

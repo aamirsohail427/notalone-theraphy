@@ -1,0 +1,95 @@
+﻿@model Telemedicine.App.Models.DashboardViewModel
+@if (!(Model.PatientDashboardStatsDto is null))
+{
+    var item = Model.PatientDashboardStatsDto;
+    <!--card stats start-->
+    <div class="row">
+        <div class="col s12 m3">
+            <div class="card gradient-shadow gradient-45deg-indigo-blue animate fadeLeft">
+                <div class="card-content center">
+                    <i class="material-icons background-round white-text z-depth-5">event</i>
+                    <h5 class="white-text lighten-4 uppercase mt-5">Appointments</h5>
+                    @if (item.TodayAppointments is 1)
+                    {
+                        <p class="white-text lighten-4">@item.TodayAppointments appointment is upcoming</p>
+                    }
+                    else
+                    {
+                        <p class="white-text lighten-4">@item.TodayAppointments appointments are upcoming</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m3">
+            <div class="card gradient-shadow gradient-45deg-red-pink animate fadeLeft">
+                <div class="card-content center">
+                    <i class="material-icons background-round white-text z-depth-5">attach_money</i>
+                    <h5 class="white-text uppercase mt-5">Amount Paid</h5>
+                    <p class="white-text lighten-4">$@String.Format("{0:0.00}", item.TotalPaid)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m3">
+            <div class="card gradient-shadow gradient-45deg-green-teal animate fadeRight">
+                <div class="card-content center">
+                    <i class="material-icons background-round white-text z-depth-5">feedback</i>
+                    <h5 class="white-text lighten-4 uppercase mt-5">Feedbacks</h5>
+                    <p class="white-text lighten-4">@item.TotalFeedbacks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m3">
+            <div class="card gradient-shadow gradient-45deg-blue-indigo animate fadeRight">
+                <div class="card-content center">
+                    <i class="material-icons background-round white-text z-depth-5">people_outline</i>
+                    <h5 class="white-text lighten-4 uppercase mt-5">Appointments</h5>
+                    <p class="white-text lighten-4">@item.TotalAppointments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--card stats end-->
+}
+<div class="row">
+    <div class="col s12">
+        <div class="card z-depth-3">
+            <div class="card-content">
+                <div class="row">
+                    <div class="col s12"><div class="card-title"><i class="material-icons left">event</i> <h5>Appointments</h5></div></div>
+                    <div class="col s12">
+                        <div id="app-calendar">
+                            <div class="row">
+                                <div class="col s12">
+                                    <div id="basic-calendar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal_appointment_detail" class="modal width-30">
+    <div class="modal-content p-0">
+        <div class="card m-0">
+            <div class="card-content">
+                <table class="striped">
+                    <tr>
+                        <th class="width-20 center"><i class="material-icons">person</i></th>
+                        <td class="width-80 center"><span class="name"></span></td>
+                    </tr>
+                    <tr>
+                        <th class="width-20 center"><i class="material-icons">event</i></th>
+                        <td class="width-80 center"><span class="appointment-date"></span></td>
+                    </tr>
+                    <tr>
+                        <th class="width-20 center"><i class="material-icons">access_time</i></th>
+                        <td class="width-80 center"><span class="appointment-time"></span></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="card-action"></div>
+        </div>
+    </div>
+</div>

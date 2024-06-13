@@ -1,0 +1,102 @@
+﻿
+@{
+    ViewData["Title"] = "Invoices";
+}
+@section styles{
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/data-tables/css/select.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/data-tables.css">
+    <link href="~/lib/google-map/ChooseLocation.css" rel="stylesheet" />
+    <style type="text/css">
+        td img {
+            max-width: 50px !important;
+            min-width: 50px !important;
+            width: 100%;
+            max-height: 50px !important;
+            min-height: 50px !important;
+            height: 100% !important;
+            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+    </style>
+}
+@section scripts{
+    <script src="~/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
+    <script src="~/app-assets/vendors/data-tables/extensions/responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/app-assets/vendors/data-tables/js/dataTables.select.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQcmSvCH5unhfQij4tZg5qKwnVqcIv7ME&libraries=places" async defer></script>
+    <script src="~/lib/google-map/ChooseLocation.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            //$('#page-length-option').DataTable({
+            //    "responsive": true,
+            //    "lengthMenu": [
+            //        [10, 25, 50, -1],
+            //        [10, 25, 50, "All"]
+            //    ]
+            //});
+            getInvoices();
+        });
+        function getInvoices() {
+            $.get("../Invoices/Get").done(function (data) {
+                $("#invoices_detail").html(data);
+            });
+        }
+        function showLocationOnMap(username, address, latitude, longitude) {
+            $("#modal_show_user_location .modal-content h4").html('<b>' + username + '\'s</b> Location');
+            $("#modal_show_user_location .modal-content div.row div.col #address").val(address);
+            $("#modal_show_user_location .modal-content div.row div.col #latitude").val(latitude);
+            $("#modal_show_user_location .modal-content div.row div.col #longitude").val(longitude);
+            initializeValues();
+            $("#modal_show_user_location").modal("open");
+        }
+    </script>
+}
+@*<div id="breadcrumbs-wrapper" data-image="../../../app-assets/images/gallery/breadcrumb-bg.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m12 l12">
+                    <h5 class="breadcrumbs-title mt-0 mb-0"><span>Invoices</span></h5>
+                </div>
+            </div>
+        </div>
+    </div>*@
+<div class="content-wrapper-before gradient-45deg-indigo-light-blue"></div>
+<div class="col s12 mt-1">
+    <div class="container">
+        <h5 class="white-text"><i class="material-icons left">receipt</i> Invoices</h5>
+        <div class="section section-data-tables">
+            <div class="row">
+                <div class="col s12">
+                    <div class="card">
+                        <div class="card-content">
+                            <h4 class="card-title"></h4>
+                            <div class="row">
+                                <div id="invoices_detail" class="col s12"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content-overlay"></div>
+</div>
+<div id="modal_show_user_location" class="modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-content upload-location">
+        <h4>Choose Location</h4>
+        <div class="row">
+            <div class="col s12">
+                <div id="map"></div>
+                <input type="hidden" id="pac-input">
+                <input type="hidden" id="address" placeholder="Address" value="" required>
+                <input type="hidden" id="latitude" placeholder="Latitude" value="" required>
+                <input type="hidden" id="longitude" placeholder="Longitude" value="" required>
+            </div>
+        </div>
+    </div>
+</div>

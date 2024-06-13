@@ -1,0 +1,398 @@
+﻿@using Telemedicine.Utilities
+@model Telemedicine.App.Models.ConsultationViewModel
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+@using Telemedicine.App.Controllers
+@{
+    Layout = null;
+}
+<!doctype html>
+<html lang="en" class="h-100">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="generator" content="">
+    <title>Video Consultation :: @Configurations.ApplicationName</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/sticky-footer-navbar/">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pnotify/3.2.1/pnotify.css" />
+    <link href="~/lib/google-map/ChooseLocation.css" rel="stylesheet" />
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @@media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        img.patient-profile-picture {
+            max-width: 80px !important;
+            min-width: 80px !important;
+            width: 100%;
+            max-height: 80px !important;
+            min-height: 80px !important;
+            height: 100% !important;
+            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="~/app-assets/css/custom/sticky-footer-navbar.css" rel="stylesheet" />
+    <link href="~/chat/css/styles.css" rel="stylesheet" />
+</head>
+<body class="d-flex flex-column h-100">
+    <header class="header-slide-out">
+        <!-- Fixed navbar -->
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark gradient-45deg-indigo-light-blue">
+            <a class="navbar-brand text-decoration-none" href="javascript:void(0);">
+                <img src="~/big-logo.jpg" height="50" class="d-inline-block align-top" alt="logo" loading="lazy">
+            </a>
+        </nav>
+    </header>
+
+    <!-- Begin page content -->
+    <main role="main" class="flex-shrink-0 main-slide-out">
+        <input type="hidden" asp-for="AppointmentId" />
+        <input type="hidden" asp-for="ApiKey" />
+        <input type="hidden" asp-for="SessionId" />
+        <input type="hidden" asp-for="Token" />
+        <input type="hidden" asp-for="DoctorId" />
+        <input type="hidden" asp-for="PatientId" />
+
+        <div id="videos">
+            <div id="subscriber"></div>
+            <div id="publisher"></div>
+        </div>
+        @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+        {
+            <aside id="aside_patient_profile" class="aside-right aside-slide-out">
+                <div class="card">
+                    <div class="card-header gradient-45deg-indigo-light-blue">
+                        <h4 class="mt-2">Patient Profile</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true">Profile</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false">Clinical Notes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="pills-contact-tab" data-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false">Attach Records</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                                <input id="pac-input" type="hidden" />
+                                <input id="address" type="hidden" />
+                                <input id="latitude" type="hidden" value="@Model.PatientProfileDetail.Latitude" />
+                                <input id="longitude" type="hidden" value="@Model.PatientProfileDetail.Longitude" />
+                                <div class="row mt-2">
+                                    <div class="col-sm-3 text-center">
+                                        <img src="@AzureConfigurations.AZURE_BLOB_BASE_URL@Model.PatientProfileDetail.ProfilePictureUrl" onerror="transformErrorImgToLettersAvatar(this, '@Model.PatientProfileDetail.FirstName @Model.PatientProfileDetail.LastName', '80')" class="patient-profile-picture" alt="@Model.PatientProfileDetail.FirstName @Model.PatientProfileDetail.MiddleName @Model.PatientProfileDetail.LastName">
+                                    </div>
+                                    <div class="col-sm-9 mt-3">
+                                        <h4>@Model.PatientProfileDetail.FirstName @Model.PatientProfileDetail.MiddleName @Model.PatientProfileDetail.LastName</h4>
+                                    </div>
+                                </div>
+                                @*<div class="row mt-2">
+                                    <div class="col-sm-6 text-center">
+                                        <i class="fa fa-birthday-cake"></i>
+                                        @if (Model.PatientProfileDetail.DateOfBirth.HasValue)
+                                        {
+                                            <br />
+                                            <span>@Model.PatientProfileDetail.DateOfBirth.Value.ToTimezoneFormatDate(_sessionManager.GetTimezoneId())</span>
+                                        }
+                                    </div>
+                                    <div class="col-sm-6 text-center">
+                                        <i class="fa fa-phone"></i>
+                                        @if (!string.IsNullOrEmpty(Model.PatientProfileDetail.Phone))
+                                        {
+                                            <br />
+                                            <span>@Model.PatientProfileDetail.Phone</span>
+                                        }
+                                    </div>
+                                </div>*@
+                                <div class="row mt-2">
+                                    <div class="col-sm-6 text-center">
+                                        <i class="fa fa-user"></i>
+                                        @if (!(Model.PatientProfileDetail.Gender is null))
+                                        {
+                                            <br />
+                                            <span>@Model.PatientProfileDetail.Gender.LongTitle</span>
+                                        }
+                                    </div>
+                                    <div class="col-sm-6 text-center">
+                                        <i class="fa fa-globe"></i>
+                                        @if (!(Model.PatientProfileDetail.PreferredLanguageType is null))
+                                        {
+                                            <br />
+                                            <span>@Model.PatientProfileDetail.PreferredLanguageType.LongTitle</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div id="map"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                                <div class="row">
+                                    @if (!(Model.PatientProfileDetail.Appointments is null))
+                                    {
+                                        if (Model.PatientProfileDetail.Appointments.Any())
+                                        {
+                                            foreach (var item in Model.PatientProfileDetail.Appointments)
+                                            {
+                                                foreach (var soapNote in item.SOAPNotes)
+                                                {
+                                                    <div class="col-sm-12 border p-3">
+                                                        <h5 class="card-title">Subjective</h5>
+                                                        <p class="card-text">@soapNote.Subjective</p>
+                                                        <h5 class="card-title">Objective</h5>
+                                                        <p class="card-text">@soapNote.Objective</p>
+                                                        <h5 class="card-title">Assessment</h5>
+                                                        <p class="card-text">@soapNote.Assessment</p>
+                                                        <h5 class="card-title">Plans</h5>
+                                                        <p class="card-text">@soapNote.Plans</p>
+                                                    </div>
+                                                    @if (!(item.CreatedBy is null))
+                                                    {
+                                                        <div class="col-sm-12 border p-3">
+                                                            <small class="text-muted pull-left">@item.CreatedBy.FirstName @item.CreatedBy.MiddleName @item.CreatedBy.LastName</small>
+                                                            <small class="text-muted pull-right">@item.StartDate.ToTimezoneFormatDateTime(_sessionManager.GetTimezoneId())</small>
+                                                        </div>
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">
+                                <div class="row">
+                                    @if (!(Model.PatientProfileDetail.PatientAttachmentsCreatedBy is null))
+                                    {
+                                        if (Model.PatientProfileDetail.PatientAttachmentsCreatedBy.Any())
+                                        {
+                                            @foreach (var item in Model.PatientProfileDetail.PatientAttachmentsCreatedBy)
+                                            {
+                                                <div class="col-sm-12 border p-3">
+                                                    <h5 class="card-title">@item.Title</h5>
+                                                    <p class="card-text">@item.Notes</p>
+                                                </div>
+                                                <div class="col-sm-12 border p-3">
+                                                    <small class="text-muted pull-left">
+                                                        <a href="@AzureConfigurations.AZURE_BLOB_BASE_URL@item.Url"><i class="fa fa-download"></i></a>
+                                                    </small>
+                                                    <small class="text-muted pull-right">@item.AttachmentDate.ToTimezoneFormatDateTime(_sessionManager.GetTimezoneId())</small>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="col-sm-12">
+                                                <p class="red-text">No Attach Record found</p>
+                                            </div>
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="col-sm-12">
+                                            <p class="red-text">No Attach Record found</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer"></div>
+                </div>
+            </aside>
+            <aside id="aside_patient_soap_note" class="aside-right aside-slide-out">
+                <div class="card">
+                    <form id="form_soap_note" asp-action="Save" asp-controller="SOAPNote" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onSOAPNoteSuccess(data)">
+                        <input type="hidden" asp-for="SOAPNoteRequestDto.PatientId" value="@Model.PatientId" />
+                        <input type="hidden" asp-for="SOAPNoteRequestDto.SOAPNoteId" />
+                        <input type="hidden" asp-for="SOAPNoteRequestDto.AppointmentId" />
+                        <div class="card-header gradient-45deg-indigo-light-blue">
+                            <h4 class="mt-2">Clinical Note</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Subjective</label>
+                                        <textarea class="form-control" rows="5" placeholder="type here" asp-for="SOAPNoteRequestDto.Subjective"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Objective</label>
+                                        <textarea class="form-control" rows="5" placeholder="type here" asp-for="SOAPNoteRequestDto.Objective"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Assessment</label>
+                                        <textarea class="form-control" rows="5" placeholder="type here" asp-for="SOAPNoteRequestDto.Assessment"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Plans</label>
+                                        <textarea class="form-control" rows="5" placeholder="type here" asp-for="SOAPNoteRequestDto.Plans"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col-sm-12 text-right mt-2">
+                                    <button type="submit" class="btn btn-success">Add Clinical Note</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+        }
+    </main>
+
+    <footer class="footer mt-auto py-3 footer-slide-out">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12 text-center">
+                    <button type="button" class="btn btn-success btn-lg" onclick="micSwitch(this)"><i class="fa fa-microphone" aria-hidden="true"></i></button>
+                    <button type="button" class="btn btn-success btn-lg" onclick="videoSwitch(this)"><i class="fa fa-video-camera" aria-hidden="true"></i></button>
+                    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+                    {
+                        <button type="button" class="btn btn-danger btn-lg" onclick="discountSession(true)"><i class="fa fa-sign-out" aria-hidden="true"></i></button>
+                    }
+                    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                    {
+                        <button type="button" class="btn btn-danger btn-lg" onclick="discountSession(false)"><i class="fa fa-sign-out" aria-hidden="true"></i></button>
+                    }
+
+                    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                    {
+                        <button type="button" class="btn btn-info btn-lg" data-aside-id="#aside_patient_profile" onclick="slideInOut(this)"><i class="fa fa-user-o" aria-hidden="true"></i></button>
+                        <button type="button" class="btn btn-primary btn-lg" data-aside-id="#aside_patient_soap_note" onclick="slideInOut(this)"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></button>
+                    }
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js" integrity="sha256-PAC000yuHt78nszJ2RO0OiDMu/uLzPLRlYTk8J3AO10=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.2.2/jquery.form.min.js" integrity="sha256-2Pjr1OlpZMY6qesJM68t2v39t+lMLvxwpa8QlRjJroA=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js" integrity="sha256-+BEKmIvQ6IsL8sHcvidtDrNOdZO3C9LtFPtF2H0dOHI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js" integrity="sha256-9GycpJnliUjJDVDqP0UEu/bsm9U+3dnQUH8+3W10vkY=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pnotify/3.2.1/pnotify.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.23/moment-timezone.min.js"></script>
+    <script src="https://static.opentok.com/v2/js/opentok.min.js"></script>
+    <script src="~/app-assets/js/custom/custom-script.js"></script>
+    <script src="~/chat/js/video-consultation.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQcmSvCH5unhfQij4tZg5qKwnVqcIv7ME&libraries=places&callback=initMap" async defer></script>
+    <script src="~/lib/google-map/ChooseLocation.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#SOAPNoteRequestDto_AppointmentId").val($("#AppointmentId").val());
+        });
+        function slideInOut(inputElement) {
+            var asideId = $(inputElement).attr("data-aside-id");
+            if ($(asideId).hasClass("aside-slide-in") === true) {
+
+                $("header").addClass("header-slide-out");
+                $("header").removeClass("header-slide-in");
+
+                $("main").addClass("main-slide-out");
+                $("main").removeClass("main-slide-in");
+
+                $(asideId).addClass("aside-slide-out");
+                $(asideId).removeClass("aside-slide-in");
+
+                $("footer").addClass("footer-slide-out");
+                $("footer").removeClass("footer-slide-in");
+            }
+            else if ($(asideId).hasClass("aside-slide-out") === true) {
+                //$("main").addClass("main-slide-out").removeClass("main-slide-in");
+                $(".aside-slide-in").addClass("aside-slide-out").removeClass("aside-slide-in");
+
+                $("header").addClass("header-slide-in");
+                $("header").removeClass("header-slide-out");
+
+                $("main").addClass("main-slide-in");
+                $("main").removeClass("main-slide-out");
+
+                $(asideId).addClass("aside-slide-in");
+                $(asideId).removeClass("aside-slide-out");
+
+                $("footer").addClass("footer-slide-in");
+                $("footer").removeClass("footer-slide-out");
+            } else {
+                return false;
+            }
+        }
+        function onSOAPNoteSuccess(data) {
+            if (data.status === 1) {
+                $("#SOAPNoteRequestDto_AppointmentId").val($("#AppointmentId").val());
+                alertG(data.message);
+                resetForm('#form_soap_note');
+            } else {
+                alertR(data.message);
+            }
+        }
+        function alertG(msg) {
+            new PNotify({
+                title: 'Success',
+                text: msg,
+                delay: 5000,
+                type: 'success',
+                addclass: 'pnotify-center'
+            });
+        }
+        function alertR(msg) {
+            new PNotify({
+                title: 'Error',
+                text: msg,
+                delay: 5000,
+                type: 'error',
+                addclass: 'pnotify-center'
+            });
+        }
+        function resetForm(formId) {
+            $('' + formId + ' input').val('');
+            $('' + formId + ' textarea').val('');
+        }
+        function discountSession(isFromPatient) {
+            if (isFromPatient === true) {
+
+                window.location.href = '@Url.Action(nameof(FeedbacksController.Doctor), "Feedbacks", new { id = Model.DoctorId })';
+            } else {
+                window.location.href = '@Url.Action(nameof(DashboardController.Index),"Dashboard")';
+            }
+        }
+    </script>
+</body>
+</html>

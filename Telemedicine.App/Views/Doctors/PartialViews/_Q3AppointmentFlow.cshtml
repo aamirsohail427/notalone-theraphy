@@ -1,0 +1,32 @@
+﻿@{
+    decimal Latitude = 40.730610m;
+    decimal Longitude = -73.935242m;
+}
+<form asp-action="GetConcernForm" asp-controller="Doctors" method="post" data-ajax="true" data-ajax-success="getConcernFormSuccess(data)">
+    <div class="modal-header mb-2">
+        <h5 class="modal-title center">Where your dentist should be?</h5>
+    </div>
+    <div class="modal-body text-center">
+        <div class="row">
+            <div class="col s12 m10 l10">
+                <input id="pac-input" type="text" placeholder="Search Address">
+            </div>
+            <div class="col s12 m2 l2 mt-2">
+                <button type="button" class="waves-effect waves-light btn-small btn-get-location green-success" onclick="getLocation()"><i class="material-icons">my_location</i></button>
+            </div>
+        </div>
+        
+        
+        <div id="GeoLocationErrorMsg"></div>
+        <div id="map"></div>
+        <p class="text-muted">Click on a location to select it. Drag the marker to change location.</p>
+        <input type="hidden" id="address" placeholder="Address" value="" required>
+        <input type="hidden" id="latitude" placeholder="Latitude" value="@Latitude" required>
+        <input type="hidden" id="longitude" placeholder="Longitude" value="@Longitude" required>
+        <div class="row mt-2">
+            <div class="col s12 center">
+                <button type="submit" class="waves-effect waves-light btn-small mb-1 mr-1 green-success">Submit <i class="material-icons right">send</i></button>
+            </div>
+        </div>
+    </div>
+</form>

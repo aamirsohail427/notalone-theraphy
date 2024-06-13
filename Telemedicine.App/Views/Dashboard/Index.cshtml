@@ -1,0 +1,438 @@
+﻿@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@using Telemedicine.App.Controllers
+@inject ISessionManager _sessionManager
+
+@{
+    ViewData["Title"] = "Dashboard";
+
+    int userRoleId = _sessionManager.GetUserRoleId();
+}
+@section styles{
+    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist) || _sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+    {
+        <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/fullcalendar/css/fullcalendar.min.css">
+        <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/fullcalendar/daygrid/daygrid.min.css">
+        <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/fullcalendar/timegrid/timegrid.min.css">
+        <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/app-calendar.css">
+    }
+    <style type="text/css">
+        .card .card-content i.material-icons {
+            font-size: 50px !important;
+        }
+
+        #modal_appointment_detail table tr th i.material-icons {
+            font-size: 24px !important;
+        }
+
+        .image-profile-picture-css {
+            max-width: 50px !important;
+            min-width: 50px !important;
+            width: 100%;
+            max-height: 50px !important;
+            min-height: 50px !important;
+            height: 100% !important;
+            vertical-align: middle;
+            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            object-fit: cover;
+        }
+    </style>
+    <style>
+        #calendar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .fc-header-toolbar {
+            /*
+        the calendar will be butting up against the edges,
+        but let's scoot in the header's buttons
+        */
+            padding-top: 1em;
+            padding-left: 1em;
+            padding-right: 1em;
+        }
+    </style>
+}
+@section scripts{
+    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Admin))
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                getUsers();
+            });
+            function getUsers() {
+                $.get("@Url.Action(nameof(DashboardController.GetUsers), "Dashboard")").done(function (data) {
+                    $("#users_detail").html(data);
+                });
+            }
+            function changeStatus(id, value) {
+                $.confirm({
+                    title: 'Alert',
+                    content: 'Are you sure you want to ' + value + ' this User?',
+                    buttons: {
+                        Yes: {
+                            text: 'Yes',
+                            btnClass: 'blue',
+                            action: function () {
+                                $.post("../Login/UpdateStatus", { id: id }).done(function (data) {
+                                    if (data.status === 1) {
+                                        M.toast({ html: data.message, classes: 'teal' });
+                                        getUsers();
+                                    } else {
+                                        M.toast({ html: data.message, classes: 'red' });
+                                    }
+                                });
+                            }
+                        },
+                        No: {
+                            text: 'No',
+                            btnClass: 'red',
+                        }
+                    }
+                });
+            }
+        </script>
+    }
+    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist) || _sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+    {
+        <script src="~/app-assets/vendors/fullcalendar/lib/moment.min.js"></script>
+        <script src="~/app-assets/vendors/fullcalendar/js/fullcalendar.min.js"></script>
+        <script src="~/app-assets/vendors/fullcalendar/daygrid/daygrid.min.js"></script>
+        <script src="~/app-assets/vendors/fullcalendar/timegrid/timegrid.min.js"></script>
+        <script src="~/app-assets/vendors/fullcalendar/interaction/interaction.min.js"></script>
+        <script src="~/app-assets/vendors/formatter/jquery.formatter.min.js"></script>
+
+        if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+        {
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    PopulateAppointments();
+                });
+                function PopulateAppointments() {
+                    var appointments = [];
+                    $.get("../Appointments/GetAppointments").done(function (data) {
+                        $.each(data.data, function (index, object) {
+                            var startDateTime = moment(object.startDate).format('YYYY-MM-DD HH:mm');
+                            var endDateTime = moment(object.endDate).format('YYYY-MM-DD HH:mm');
+
+                            var green = "#009688";
+                            var grey = "#e5e5e5";
+                            var red = "#f44336";
+                            var white = "#fff";
+                            var black = "#000";
+
+                            var eventBackgroundColor = "";
+                            var eventBorderColor = "";
+                            var eventTextColor = "";
+                            var eventTitle = "";
+                            var patientName = '';
+
+                            if (object.user === null) {
+                                eventTitle = '' + moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm') + '';
+                                eventBackgroundColor = grey;
+                                eventBorderColor = grey;
+                                eventTextColor = black;
+                            } else {
+                                eventTitle = '( ' + object.user.firstName + ' ' + object.user.lastName + ' )' + moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm') + '';
+                                eventBackgroundColor = green;
+                                eventBorderColor = green;
+                                eventTextColor = white;
+                            }
+
+                            appointments.push({
+                                title: eventTitle,
+                                start: startDateTime,
+                                end: endDateTime,
+                                backgroundColor: eventBackgroundColor,
+                                borderColor: eventBorderColor,
+                                textColor: eventTextColor,
+                                name: patientName,
+                                time: moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm'),
+                                aptdate: moment(object.startDate).format('dddd DD MMMM, YYYY'),
+                                appointmentId: object.appointmentId,
+                                startDateTime: startDateTime
+                            });
+                        });
+
+                        var basicCal = document.getElementById('basic-calendar');
+                        var fcCalendar = new FullCalendar.Calendar(basicCal, {
+                            height: '100%',
+                            header: {
+                                left: 'prev,next today',
+                                center: 'title',
+                                right: "dayGridMonth,timeGridWeek,timeGridDay"
+                            },
+                            defaultDate: new Date(),
+                            defaultView: 'timeGridDay',
+                            editable: true,
+                            plugins: ["dayGrid", "timeGrid", "interaction"],
+                            eventLimit: true, // allow "more" link when too many events
+                            events: appointments,
+                            eventBackgroundColor: '',
+                            eventTextColor: '#000000',
+                            eventClick: function (eventClickInfo) {
+                                $('#modal_appointment_detail div.card-action').html('');
+                                var extendedProps = eventClickInfo.event.extendedProps;
+                                var diff = moment().diff(moment(extendedProps.startDateTime));
+                                if (extendedProps.name === '') {
+                                    $('#modal_appointment_detail span.name').html('N/A');
+                                    if (diff < 0) {
+                                        $('#modal_appointment_detail div.card-action').html('<a href="javascript:void(0);" onclick="deleteAppointmentById(' + extendedProps.appointmentId + ')" class="right red-text">Delete Appointment</a>');
+                                    }
+                                } else {
+                                    $('#modal_appointment_detail span.name').html(extendedProps.name);
+                                    if (diff < 0) {
+                                        $('#modal_appointment_detail div.card-action').html('<a href="#" class="right red-text" onclick="cancelAppointmentById(' + extendedProps.appointmentId + ')">Cancel Appointment</a>');
+                                    }
+                                }
+
+                                $('#modal_appointment_detail span.appointment-date').html(extendedProps.aptdate);
+                                $('#modal_appointment_detail span.appointment-time').html(extendedProps.time);
+
+                                $('#modal_appointment_detail').modal("open");
+                            }
+                        });
+                        fcCalendar.render();
+                    });
+                }
+                function deleteAppointmentById(id) {
+                    $.confirm({
+                        title: 'Alert',
+                        content: 'Are you sure you want to delete this appointment slot?',
+                        buttons: {
+                            Yes: {
+                                text: 'Yes',
+                                btnClass: 'blue',
+                                action: function () {
+                                    $.post("../Appointments/DeleteAppointment", { id: id }).done(function (data) {
+                                        if (data.status === 1) {
+                                            M.toast({ html: data.message, classes: 'teal' });
+                                            $('#modal_appointment_detail').modal("close");
+                                            PopulateAppointments();
+                                        } else {
+                                            M.toast({ html: data.message, classes: 'red' });
+                                        }
+                                    });
+                                }
+                            },
+                            No: {
+                                text: 'No',
+                                btnClass: 'red',
+                            }
+                        }
+                    });
+                }
+                function cancelAppointmentById(id) {
+                    $.confirm({
+                        title: 'Alert',
+                        content: 'Are you sure you want to cancel this appointment slot?',
+                        buttons: {
+                            Yes: {
+                                text: 'Yes',
+                                btnClass: 'blue',
+                                action: function () {
+                                    $.post("../Appointments/CancelAppointment", { id: id }).done(function (data) {
+                                        if (data.status === 1) {
+                                            M.toast({ html: data.message, classes: 'teal' });
+                                            $('#modal_appointment_detail').modal("close");
+                                            PopulateAppointments();
+                                        } else {
+                                            M.toast({ html: data.message, classes: 'red' });
+                                        }
+                                    });
+                                }
+                            },
+                            No: {
+                                text: 'No',
+                                btnClass: 'red',
+                            }
+                        }
+                    });
+                }
+            </script>
+        }
+
+        if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+        {
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    PopulateAppointments();
+                });
+                function PopulateAppointments() {
+                    var appointments = [];
+                    $.get("../Appointments/GetAppointments").done(function (data) {
+                        $.each(data.data, function (index, object) {
+                            var startDateTime = moment(object.startDate).format('YYYY-MM-DD HH:mm');
+                            var endDateTime = moment(object.endDate).format('YYYY-MM-DD HH:mm');
+
+                            var green = "#009688";
+                            var grey = "#e5e5e5";
+                            var red = "#f44336";
+                            var white = "#fff";
+                            var black = "#000";
+
+                            var eventBackgroundColor = "";
+                            var eventBorderColor = "";
+                            var eventTextColor = "";
+                            var eventTitle = "";
+                            var patientName = '';
+
+                            if (object.createdBy === null) {
+                                eventTitle = '' + moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm') + '';
+                                eventBackgroundColor = grey;
+                                eventBorderColor = grey;
+                                eventTextColor = black;
+                            } else {
+                                eventTitle = '( ' + object.createdBy.firstName + ' ' + object.createdBy.lastName + ' )' + moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm') + '';
+                                eventBackgroundColor = green;
+                                eventBorderColor = green;
+                                eventTextColor = white;
+                            }
+
+                            appointments.push({
+                                title: eventTitle,
+                                start: startDateTime,
+                                end: endDateTime,
+                                backgroundColor: eventBackgroundColor,
+                                borderColor: eventBorderColor,
+                                textColor: eventTextColor,
+                                name: object.createdBy.firstName + ' ' + object.createdBy.lastName,
+                                time: moment(object.startDate).format('HH:mm') + ' - ' + moment(object.endDate).format('HH:mm'),
+                                aptdate: moment(object.startDate).format('dddd DD MMMM, YYYY'),
+                                appointmentId: object.appointmentId,
+                                doctorId: object.createdById,
+                                startDateTime: startDateTime
+                            });
+                        });
+
+                        var basicCal = document.getElementById('basic-calendar');
+                        var fcCalendar = new FullCalendar.Calendar(basicCal, {
+                            height: '100%',
+                            header: {
+                                left: 'prev,next today',
+                                center: 'title',
+                                right: "dayGridMonth,timeGridWeek,timeGridDay"
+                            },
+                            defaultView:'timeGridDay',
+                            defaultDate: new Date(),
+                            editable: true,
+                            plugins: ["dayGrid", "timeGrid", "interaction"],
+                            eventLimit: true, // allow "more" link when too many events
+                            events: appointments,
+                            eventBackgroundColor: '',
+                            eventTextColor: '#000000',
+                            eventClick: function (eventClickInfo) {
+                                $('#modal_appointment_detail div.card-action').html('');
+                                var extendedProps = eventClickInfo.event.extendedProps;
+                                var diff = moment().diff(moment(extendedProps.startDateTime));
+                                if (extendedProps.name === '') {
+                                    $('#modal_appointment_detail span.name').html('N/A');
+                                    if (diff < 0) {
+                                        $('#modal_appointment_detail div.card-action').html('<a href="javascript:void(0);" onclick="deleteAppointmentById(' + extendedProps.appointmentId + ')" class="right red-text">Delete Appointment</a>');
+                                    }
+                                } else {
+                                    $('#modal_appointment_detail span.name').html(extendedProps.name);
+                                    if (diff < 0) {
+                                        $('#modal_appointment_detail div.card-action').html('<a href="javascript:void(0);" class="left blue-text" onclick="rescheduleAppointment(' + extendedProps.appointmentId + ', ' + extendedProps.doctorId + ')">Reschedule Appointment</a> <a href="javascript:void(0);" class="right red-text" onclick="cancelAppointmentById(' + extendedProps.appointmentId + ')">Cancel Appointment</a>');
+                                    }
+                                }
+
+                                $('#modal_appointment_detail span.appointment-date').html(extendedProps.aptdate);
+                                $('#modal_appointment_detail span.appointment-time').html(extendedProps.time);
+
+                                $('#modal_appointment_detail').modal("open");
+                            }
+                        });
+                        fcCalendar.render();
+                    });
+                }
+                            function cancelAppointmentById(id) {
+                $.confirm({
+                    title: 'Alert',
+                    content: 'Are you sure you want to cancel this appointment slot?',
+                    buttons: {
+                        Yes: {
+                            text: 'Yes',
+                            btnClass: 'blue',
+                            action: function () {
+                                $.post("../Appointments/CancelAppointment", { id: id }).done(function (data) {
+                                    if (data.status === 1) {
+                                        M.toast({ html: data.message, classes: 'teal' });
+                                        $('#modal_appointment_detail').modal("close");
+                                        PopulateAppointments();
+                                    } else {
+                                        M.toast({ html: data.message, classes: 'red' });
+                                    }
+                                });
+                            }
+                        },
+                        No: {
+                            text: 'No',
+                            btnClass: 'red',
+                        }
+                    }
+                });
+            }
+            function rescheduleAppointment(aptId, docId) {
+                $.confirm({
+                    title: 'Alert',
+                    content: 'Are you sure you want to reschedule this appointment slot?',
+                    buttons: {
+                        Yes: {
+                            text: 'Yes',
+                            btnClass: 'blue',
+                            action: function () {
+                                $.post("../Appointments/CancelAppointment", { id: aptId }).done(function (data) {
+                                    if (data.status === 1) {
+                                        //M.toast({ html: data.message, classes: 'teal' });
+                                        //$('#modal_appointment_detail').modal("close");
+                                        window.location.href = "@Url.Action(nameof(DoctorsController.Profile), "Doctors")/" + docId + "";
+                                    } else {
+                                        M.toast({ html: data.message, classes: 'red' });
+                                    }
+                                });
+                            }
+                        },
+                        No: {
+                            text: 'No',
+                            btnClass: 'red',
+                        }
+                    }
+                });
+            }
+            </script>
+        }
+    }
+}
+<div class="content-wrapper-before gradient-45deg-indigo-light-blue"></div>
+<div class="col s12 mt-1">
+    <div class="container">
+        <h5 class="white-text"><i class="material-icons left">dashboard</i> Dashboard</h5>
+        <div class="section">
+            @{
+                if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Admin))
+                {
+                    <partial name="~/Views/Dashboard/PartialViews/_AdminDashboard.cshtml" />
+                }
+
+                if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                {
+                    <partial name="~/Views/Dashboard/PartialViews/_DoctorDashboard.cshtml" />
+                }
+
+                if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+                {
+                    <partial name="~/Views/Dashboard/PartialViews/_PatientDashboard.cshtml" />
+                }
+            }
+        </div>
+    </div>
+    <div class="content-overlay"></div>
+</div>

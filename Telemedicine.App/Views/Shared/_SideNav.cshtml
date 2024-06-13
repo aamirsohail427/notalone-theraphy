@@ -1,0 +1,103 @@
+﻿@using Telemedicine.App.Controllers
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+
+@{
+    int userRoleId = _sessionManager.GetUserRoleId();
+    string username = _sessionManager.GetUsername();
+}
+<aside class="sidenav-main nav-expanded nav-lock nav-collapsible sidenav-dark gradient-45deg-indigo-light-blue sidenav-gradient sidenav-active-rounded">
+    <div class="brand-sidebar">
+        <h1 class="logo-wrapper">
+            <a class="brand-logo darken-1" href="@Url.Action(nameof(DashboardController.Index),"Dashboard")">
+                <img class="hide-on-med-and-down " src="~/big-logo.jpg" alt="materialize logo" />
+                <img class="show-on-medium-and-down hide-on-med-and-up" src="~/big-logo.jpg" alt="materialize logo" />
+                <span class="logo-text hide-on-med-and-down">IClinicNow</span>
+            </a>
+            <a class="navbar-toggler" href="#"><i class="material-icons">radio_button_checked</i></a>
+        </h1>
+        @*<h1 class="logo-wrapper">
+            <a class="brand-logo" href="@Url.Action(nameof(DashboardController.Index),"Dashboard")">
+                <span class="logo-text hide-on-med-and-down white-text">
+                    <img src="~/big-logo.jpeg" class="img-circle-css" />
+                    NotAlone
+                </span>
+            </a>
+            <a class="navbar-toggler" href="#">
+                <i class="material-icons">radio_button_checked</i>
+            </a>
+        </h1>*@
+    </div>
+    <ul class="sidenav sidenav-collapsible leftside-navigation collapsible sidenav-fixed menu-shadow pt-1 grey-primary" id="slide-out" data-menu="menu-navigation" data-collapsible="accordion">
+        <li class="bold">
+            <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Dashboard")" href="@Url.Action(nameof(DashboardController.Index),"Dashboard")"><i class="material-icons">dashboard</i><span class="menu-title" data-i18n="Dashboard">Dashboard</span></a>
+        </li>
+        @{
+            if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Admin))
+            {
+
+            }
+            if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+            {
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Appointments")" href="@Url.Action(nameof(AppointmentsController.Index),"Appointments")"><i class="material-icons">event</i><span class="menu-title" data-i18n="Appointments">Appointments</span></a>
+                </li>
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Doctors")" href="@Url.Action(nameof(DoctorsController.Index),"Doctors")"><i class="material-icons">event_available</i><span class="menu-title" data-i18n="Doctors">Book an Appointment</span></a>
+                </li>
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Conversations")" href="@Url.Action(nameof(ConversationsController.Index),"Conversations")"><i class="material-icons">message</i><span class="menu-title" data-i18n="Conversations">Conversations</span>
+                    <span class="dot mt-7 mr-5 float-right"></span>
+                    </a>
+                </li>
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Invoices")" href="@Url.Action(nameof(InvoicesController.Index),"Invoices")"><i class="material-icons">payment</i><span class="menu-title" data-i18n="Invoices">Invoices</span></a>
+                </li>
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Feedbacks")" href="@Url.Action(nameof(FeedbacksController.Index),"Feedbacks")"><i class="material-icons">feedback</i><span class="menu-title" data-i18n="Feedback">Feedback</span>
+                    @*<span class="badge new badge pill red dark-1 float-right mr-2">5</span>*@
+                    </a>
+                </li>
+            }
+            if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+            {
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Appointments")" href="@Url.Action(nameof(AppointmentsController.Index),"Appointments")"><i class="material-icons">event</i><span class="menu-title" data-i18n="Appointments">Appointments</span></a>
+                </li>
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Conversations")" href="@Url.Action(nameof(ConversationsController.Index),"Conversations")"><i class="material-icons">message</i><span class="menu-title" data-i18n="Conversations">Conversations</span>
+                    @*<span class="badge new badge pill green-primary float-right mr-2">5</span>*@
+                    </a>
+                </li>
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Feedbacks")" href="@Url.Action(nameof(FeedbacksController.Index),"Feedbacks")"><i class="material-icons">feedback</i><span class="menu-title" data-i18n="Feedback">Feedback</span>
+                    @*<span class="badge new badge pill red dark-1 float-right mr-2">5</span>*@
+                    </a>
+                </li>
+                <li class="bold">
+                    <a class="waves-effect waves-cyan @Html.IsSelected(actions: "Index", controllers: "Patients")" href="@Url.Action(nameof(PatientsController.Index),"Patients")"><i class="material-icons">people_outline</i><span class="menu-title" data-i18n="Patients">My Clients</span></a>
+                </li>
+            }
+        }
+
+
+        @*<li class="bold">
+            <a class="collapsible-header waves-effect waves-cyan " href="JavaScript:void(0)"><i class="material-icons">settings_input_svideo</i><span class="menu-title" data-i18n="Dashboard">Dashboard</span><span class="badge badge pill orange float-right mr-10">3</span></a>
+            <div class="collapsible-body">
+                <ul class="collapsible collapsible-sub" data-collapsible="accordion">
+                    <li>
+                        <a href="dashboard-modern.html"><i class="material-icons">radio_button_unchecked</i><span data-i18n="Modern">Modern</span></a>
+                    </li>
+                    <li>
+                        <a href="dashboard-ecommerce.html"><i class="material-icons">radio_button_unchecked</i><span data-i18n="eCommerce">eCommerce</span></a>
+                    </li>
+                    <li>
+                        <a href="dashboard-analytics.html"><i class="material-icons">radio_button_unchecked</i><span data-i18n="Analytics">Analytics</span></a>
+                    </li>
+                </ul>
+            </div>
+        </li>*@
+    </ul>
+    <div class="navigation-background"></div><a class="sidenav-trigger btn-sidenav-toggle btn-floating btn-medium waves-effect waves-light hide-on-large-only" href="#" data-target="slide-out"><i class="material-icons">menu</i></a>
+</aside>

@@ -1,0 +1,264 @@
+﻿@model Telemedicine.App.Models.UserViewModel
+@using Telemedicine.Services.Interfaces
+@using Telemedicine.Utilities
+@inject ISessionManager _sessionManager
+
+@{
+    int userRoleId = _sessionManager.GetUserRoleId();
+    string username = _sessionManager.GetUsername();
+    string profilePicture = _sessionManager.GetProfilePicture();
+    if (string.IsNullOrEmpty(profilePicture))
+        profilePicture = "#";
+}
+<!-- User Profile Feed -->
+    <div class="col s12 m4 l3">
+        <div class="row mt-3">
+            <div class="col s12 grid">
+                <form id="form_profile_picture" asp-action="UpdateProfilePicture" asp-controller="User" method="post" enctype="multipart/form-data">
+                    <figure class="effect-zoe z-depth-5">
+                        <img class="responsive-img current-user-profile-picture image-profile-picture-css" width="120" src="@profilePicture" onerror="transformErrorImgToLettersAvatar(this, '@username', '120')" alt="">
+                        <figcaption>
+                            <p class="icon-links">
+                                <label for="ProfilePicture"><i class="material-icons">photo_camera</i></label>
+                                <input id="ProfilePicture" type="file" name="ProfilePicture" style="display:none;" accept=".png, .jpg, .jpeg" onchange="uploadProfilePicture()" data-val="true" />
+                            </p>
+                        </figcaption>
+                    </figure>
+                </form>
+            </div>
+        </div>
+        <div class="row mt-10 center">
+            <div class="col s6">
+                <h6><i class="material-icons teal-text">cake</i></h6>
+                <p id="user_date_of_birth" class="m-0"></p>
+            </div>
+            <div class="col s6">
+                <h6><i class="material-icons blue-text">call</i></h6>
+                <p id="user_phone_number" class="m-0"></p>
+            </div>
+        </div>
+        <div class="row mt-3 center">
+            <div class="col s6">
+                <h6><i class="material-icons teal-text">person</i></h6>
+                <p id="user_gender" class="m-0"></p>
+            </div>
+            <div class="col s6">
+                <h6><i class="material-icons blue-text">language</i></h6>
+                <p id="user_preferred_language" class="m-0"></p>
+            </div>
+            <div class="col s12">
+                <hr class="mt-5">
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col s12">
+                <div class="row">
+                    <div class="col s12">
+                        <h6>Bio</h6>
+                        <p id="user_bio"></p>
+                    </div>
+                </div>
+                <hr class="mt-5">
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col s12">
+                <div id="user_current_location"></div>
+            </div>
+        </div>
+    </div>
+<!-- User Post Feed -->
+<div class="col s12 m8 l9">
+    <div class="container">
+        <div class="card user-card-negative-margin z-depth-0" id="feed">
+            <div class="card-content card-border-gray">
+                <div class="row">
+                    <div class="col s12">
+                        <h5>@username's Profile</h5>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col s12">
+                        <ul id="tabs-swipe-demo" class="tabs">
+                            <li class="tab col s12 m4 l4"><a href="#tab_personal" class="active"><i class="material-icons">info_outline</i> Personal</a></li>
+                            <li class="tab col s12 m4 l4"><a href="#tab_detail_info"><i class="material-icons">format_list_bulleted</i> Other Informations</a></li>
+                            <li class="tab col s12 m4 l4"><a href="#tab_reset_password"><i class="material-icons">lock_open</i> Reset Password</a></li>
+                        </ul>
+                        <div id="tab_personal" class="col s12 carousel carousel-item"></div>
+                        <div id="tab_detail_info" class="col s12 carousel carousel-item">
+                            <div class="row">
+                                <div class="col s12 m6 l6">
+                                    <h6>Experiences</h6>
+                                </div>
+                                <div class="col s12 m6 l6">
+                                    <a class="btn-floating mb-1 waves-effect waves-light mr-1 right modal-trigger gradient-45deg-indigo-light-blue" href="#modal_experience">
+                                        <i class="material-icons">add</i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row ">
+                                <div id="experience_detail" class="col s12"></div>
+                            </div>
+                            <div class="row pt-1 pb-1">
+                                <div class="col s12">
+                                    <hr />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col s12 m6 l6">
+                                    <h6>Educations</h6>
+                                </div>
+                                <div class="col s12 m6 l6">
+                                    <a class="btn-floating mb-1 waves-effect waves-light mr-1 right modal-trigger gradient-45deg-indigo-light-blue" href="#modal_education">
+                                        <i class="material-icons">add</i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row ">
+                                <div id="education_detail" class="col s12"></div>
+                            </div>
+                            <div class="row pt-1 pb-1">
+                                <div class="col s12">
+                                    <hr />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col s12 m6 l6">
+                                    <h6>Awards</h6>
+                                </div>
+                                <div class="col s12 m6 l6">
+                                    <a class="btn-floating mb-1 waves-effect waves-light mr-1 right modal-trigger gradient-45deg-indigo-light-blue" href="#modal_awards">
+                                        <i class="material-icons">add</i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row ">
+                                <div id="award_detail" class="col s12"></div>
+                            </div>
+                        </div>
+                        <div id="tab_reset_password" class="col s12 carousel carousel-item">
+                            <partial name="~/Views/User/PartialViews/_ResetPassword.cshtml" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Today Highlight -->
+
+<div id="modal_experience" class="modal modal-fixed-footer" data-backdrop="static" data-keyboard="false">
+    <form id="form_doctor_experience" asp-action="Save" asp-controller="DoctorExperience" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onDoctorExperienceSuccess(data)">
+        <div class="modal-content">
+            <h4>Experience</h4>
+            <input type="hidden" asp-for="DoctorExperienceRequestDto.DoctorExperienceId" />
+            <div class="row">
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" asp-for="DoctorExperienceRequestDto.Organization">
+                    <label class="center-align" asp-for="DoctorExperienceRequestDto.Organization">Organization</label>
+                    <span class="red-text" asp-validation-for="DoctorExperienceRequestDto.Organization"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" asp-for="DoctorExperienceRequestDto.Title">
+                    <label class="center-align" asp-for="DoctorExperienceRequestDto.Title">Title</label>
+                    <span class="red-text" asp-validation-for="DoctorExperienceRequestDto.Title"></span>
+                </div>
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" class="date-formatter pickadate" placeholder="MM/DD/YYYY" asp-for="DoctorExperienceRequestDto.StartDate" asp-format="{0:MM/dd/yyyy}">
+                    <label class="center-align" asp-for="DoctorExperienceRequestDto.StartDate">Start Date</label>
+                    <span class="red-text" asp-validation-for="DoctorExperienceRequestDto.StartDate"></span>
+                </div>
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" class="date-formatter pickadate" placeholder="MM/DD/YYYY" asp-for="DoctorExperienceRequestDto.EndDate" asp-format="{0:MM/dd/yyyy}">
+                    <label class="center-align" asp-for="DoctorExperienceRequestDto.EndDate">End Date</label>
+                    <span class="red-text" asp-validation-for="DoctorExperienceRequestDto.EndDate"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" asp-for="DoctorExperienceRequestDto.Address">
+                    <label class="center-align" asp-for="DoctorExperienceRequestDto.Address">Location</label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+            <button type="submit" class="waves-effect waves-green btn-flat">Save Changes</button>
+        </div>
+    </form>
+</div>
+<div id="modal_education" class="modal modal-fixed-footer" data-backdrop="static" data-keyboard="false">
+    <form id="form_doctor_education" asp-action="Save" asp-controller="DoctorEducation" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onDoctorEducationSuccess(data)">
+        <div class="modal-content">
+            <h4>Education</h4>
+            <input type="hidden" asp-for="DoctorEducationRequestDto.DoctorEducationId" />
+            <div class="row">
+                <div class="input-field col s12 m4 l4">
+                    <select class="browser-default" asp-for="DoctorEducationRequestDto.DoctorEducationTypeId" asp-items="Model.EducationTypes"></select>
+                    <span class="red-text" asp-validation-for="DoctorEducationRequestDto.DoctorEducationTypeId"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" asp-for="DoctorEducationRequestDto.Title">
+                    <label class="center-align" asp-for="DoctorEducationRequestDto.Title">Title</label>
+                    <span class="red-text" asp-validation-for="DoctorEducationRequestDto.Title"></span>
+                </div>
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" class="date-formatter pickadate" placeholder="MM/DD/YYYY" asp-for="DoctorEducationRequestDto.StartDate" asp-format="{0:MM/dd/yyyy}">
+                    <label class="center-align" asp-for="DoctorEducationRequestDto.StartDate">Start Date</label>
+                    <span class="red-text" asp-validation-for="DoctorEducationRequestDto.StartDate"></span>
+                </div>
+                <div class="input-field col s12 m4 l4">
+                    <input type="text" class="date-formatter pickadate" placeholder="MM/DD/YYYY" asp-for="DoctorEducationRequestDto.EndDate" asp-format="{0:MM/dd/yyyy}">
+                    <label class="center-align" asp-for="DoctorEducationRequestDto.EndDate">End Date</label>
+                    <span class="red-text" asp-validation-for="DoctorEducationRequestDto.EndDate"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" asp-for="DoctorEducationRequestDto.Address">
+                    <label class="center-align" asp-for="DoctorEducationRequestDto.Address">Location</label>
+                    <span class="red-text" asp-validation-for="DoctorEducationRequestDto.Address"></span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+            <button type="submit" class="waves-effect waves-green btn-flat">Save Changes</button>
+        </div>
+    </form>
+</div>
+<div id="modal_awards" class="modal modal-fixed-footer" data-backdrop="static" data-keyboard="false">
+    <form id="form_doctor_award" asp-action="Save" asp-controller="DoctorAward" method="post" data-ajax="true" data-ajax-begin="onAjaxBegin()" data-ajax-complete="onAjaxComplete()" data-ajax-success="onDoctorAwardSuccess(data)">
+        <div class="modal-content">
+            <h4>Awards</h4>
+            <input type="hidden" asp-for="DoctorAwardRequestDto.DoctorAwardId" />
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" asp-for="DoctorAwardRequestDto.Title">
+                    <label class="center-align" asp-for="DoctorAwardRequestDto.Title">Title</label>
+                    <span class="red-text" asp-validation-for="DoctorAwardRequestDto.Title"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12 m6 l6">
+                    <input type="text" asp-for="DoctorAwardRequestDto.Institution">
+                    <label class="center-align" asp-for="DoctorAwardRequestDto.Institution">Institution</label>
+                    <span class="red-text" asp-validation-for="DoctorAwardRequestDto.Institution"></span>
+                </div>
+                <div class="input-field col s12 m6 l6">
+                    <input type="text" class="date-formatter pickadate" placeholder="MM/DD/YYYY" asp-for="DoctorAwardRequestDto.AwardDate" asp-format="{0:MM/dd/yyyy}">
+                    <label class="center-align" asp-for="DoctorAwardRequestDto.AwardDate">Date</label>
+                    <span class="red-text" asp-validation-for="DoctorAwardRequestDto.AwardDate"></span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+            <button type="submit" class="waves-effect waves-green btn-flat">Save Changes</button>
+        </div>
+    </form>
+</div>

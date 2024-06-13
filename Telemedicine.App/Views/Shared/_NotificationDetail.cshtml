@@ -1,0 +1,58 @@
+﻿@model List<Telemedicine.Models.Dtos.ResponseDto.NotificationResponseDto>
+@using Telemedicine.Utilities
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+@if (!(Model is null))
+{
+    if (Model.Any())
+    {
+        int notificationCount = Model.Where(x => x.IsRead == false).ToList().Count;
+
+        <li>
+            <h6>NOTIFICATIONS<span class="new badge">@notificationCount</span></h6>
+        </li>
+        <li class="divider"></li>
+
+        @foreach (var item in Model)
+        {
+            if (item.NotificationTypeId == Convert.ToInt32(NotificationTypes.Appointment))
+            {
+                <li>
+                    <a class="black-text" href="#!"><span class="material-icons icon-bg-circle cyan small">event</span> @item.Message</a>
+                    <time class="media-meta grey-text darken-2">@item.CreatedDateTime.ToTimezoneFormatDateTime(_sessionManager.GetTimezoneId())</time>
+                </li>
+            }
+
+            if (item.NotificationTypeId == Convert.ToInt32(NotificationTypes.Message))
+            {
+                <li>
+                    <a class="black-text" href="#!"><span class="material-icons icon-bg-circle deep-orange small">message</span> @item.Message</a>
+                    <time class="media-meta grey-text darken-2">@item.CreatedDateTime.ToTimezoneFormatDateTime(_sessionManager.GetTimezoneId())</time>
+                </li>
+            }
+
+            if (item.NotificationTypeId == Convert.ToInt32(NotificationTypes.Payment))
+            {
+                <li>
+                    <a class="black-text" href="#!"><span class="material-icons icon-bg-circle amber small">attach_money</span> @item.Message</a>
+                    <time class="media-meta grey-text darken-2">@item.CreatedDateTime.ToTimezoneFormatDateTime(_sessionManager.GetTimezoneId())</time>
+                </li>
+            }
+
+            if (item.NotificationTypeId == Convert.ToInt32(NotificationTypes.SOAPNote))
+            {
+                <li>
+                    <a class="black-text" href="#!"><span class="material-icons icon-bg-circle red small">speaker_notes</span> @item.Message</a>
+                    <time class="media-meta grey-text darken-2">@item.CreatedDateTime.ToTimezoneFormatDateTime(_sessionManager.GetTimezoneId())</time>
+                </li>
+            }
+        }
+    }
+}
+@*<li>
+        <a class="black-text" href="#!"><span class="material-icons icon-bg-circle red small">event_busy</span> Jason Madison cancel your appointment</a>
+        <time class="media-meta grey-text darken-2" datetime="2015-06-12T20:50:48+08:00">3 days ago</time>
+    </li>*@
+@*<li>
+        <a class="black-text" href="#!"><span class="material-icons icon-bg-circle teal small">call</span> Fumni called you while you were away</a>
+        <time class="media-meta grey-text darken-2" datetime="2015-06-12T20:50:48+08:00">4 days ago</time>
+    </li>*@

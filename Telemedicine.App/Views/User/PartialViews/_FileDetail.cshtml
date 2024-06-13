@@ -1,0 +1,60 @@
+﻿@model List<Telemedicine.Models.Dtos.ResponseDto.PatientAttachmentResponseDto>
+@using Telemedicine.Utilities
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+@{
+    var files = Model.Where(x => x.IsActive == true).ToList();
+}
+<div class="section section-data-tInstitutionables">
+    <table class="striped">
+        <thead>
+            <tr>
+                <th class="width-30 left-align">Title</th>
+                <th class="width-20 left-align">Uploaded Date</th>
+                <th class="width-40 left-align">Notes</th>
+                <th class="width-10 right-align">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                if (!(files is null))
+                {
+                    if (files.Any())
+                    {
+                        foreach (var item in files)
+                        {
+                            <tr>
+                                <td class="width-30 left-align">@item.Title</td>
+                                <td class="width-20 left-align">@item.AttachmentDate.ToFormatDate()</td>
+                                <td class="width-40 left-align text-truncate">@item.Notes</td>
+                                <td class="width-10 right-align">
+                                    <a href="@AzureConfigurations.AZURE_BLOB_BASE_URL@item.Url" class="blue-text" download target="_blank"><i class="material-icons">file_download</i></a>
+                                    @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Client))
+                                    {
+                                        @*<a href="javascript:void(0);" class="blue-text" onclick="getPatientAttachmentById(@item.PatientAttachmentId)"><i class="material-icons">edit</i></a>*@
+                                        <a href="javascript:void(0);" class="red-text" onclick="deletePatientAttachmentById(@item.PatientAttachmentId)"><i class="material-icons">delete</i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td class="width-100 center-align" colspan="4">
+                                <span class="text-muted">No Attach Record Found</span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td class="width-100 center-align" colspan="4">
+                            <span class="text-muted">No Attach Record Found</span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

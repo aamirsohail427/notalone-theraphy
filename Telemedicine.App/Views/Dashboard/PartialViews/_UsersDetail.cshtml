@@ -1,0 +1,168 @@
+﻿@model List<Telemedicine.Models.Dtos.ResponseDto.UserResponseDto>
+@using Telemedicine.App.Controllers
+@using Telemedicine.Utilities
+@{
+    if (!(Model is null))
+    {
+        if (Model.Any())
+        {
+            var patients = Model.Where(x => x.UserRoleId == Convert.ToInt32(UserRoleTypes.Client));
+            var doctors = Model.Where(x => x.UserRoleId == Convert.ToInt32(UserRoleTypes.Therapist));
+
+            <div class="card z-depth-3">
+                <div class="card-content">
+                    <div class="row">
+                        <div class="col s12"><div class="card-title"><i class="material-icons left">people_outline</i> <h5>Clients</h5></div></div>
+                        <div class="col s12">
+                            @if (patients.Any())
+                            {
+                                <table class="striped datatable">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-30" colspan="2">Name</th>
+                                            <th class="width-30 center">Email</th>
+                                            <th class="width-20 center">Status</th>
+                                            <th class="width-20 right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in patients)
+                                        {
+                                            string profilePictureUrl = "#";
+                                            if (!string.IsNullOrEmpty(item.ProfilePictureUrl))
+                                                profilePictureUrl = Telemedicine.Utilities.AzureConfigurations.AZURE_BLOB_BASE_URL + item.ProfilePictureUrl;
+
+                                            <tr>
+                                                <td>
+                                                    <img class="image-profile-picture-css z-depth-3" width="50" src="@profilePictureUrl" onerror="transformErrorImgToLettersAvatar(this, '@item.FirstName @item.LastName', '50')" alt="@item.FirstName @item.MiddleName @item.LastName">
+                                                </td>
+                                                <td>
+                                                    @item.FirstName @item.MiddleName @item.LastName
+                                                </td>
+                                                <td class="width-30 center">@item.Logins.FirstOrDefault().Email</td>
+                                                <td class="width-20 center">
+                                                    @if (item.Logins.FirstOrDefault().IsLoginAllowed)
+                                                    {
+                                                        <div class="card-alert card green m-0">
+                                                            <div class="card-content white-text">
+                                                                <p>Active</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="card-alert card red m-0">
+                                                            <div class="card-content white-text">
+                                                                <p>Block</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </td>
+                                                <td class="width-20 right">
+                                                    @if (item.Logins.FirstOrDefault().IsLoginAllowed)
+                                                    {
+                                                        <a href="javascript:void(0);" onclick="changeStatus('@item.Logins.FirstOrDefault().LoginId','block')" class="red-text"><i class="material-icons">block</i></a>
+
+                                                    }
+                                                    else
+                                                    {
+                                                        <a href="javascript:void(0);" onclick="changeStatus('@item.Logins.FirstOrDefault().LoginId','unblock')" class="teal-text"><i class="material-icons">done</i></a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <p class="text-muted red-text">No Client found</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card z-depth-3 mt-2">
+                <div class="card-content">
+                    <div class="row">
+                        <div class="col s12"><div class="card-title"><i class="material-icons left">people_outline</i> <h5>Therapists</h5></div></div>
+                        <div class="col s12">
+                            @if (doctors.Any())
+                            {
+                                <table class="striped datatable">
+                                    <thead>
+                                        <tr>
+                                            <th class="width-30" colspan="2">Name</th>
+                                            <th class="width-30 center">Email</th>
+                                            <th class="width-20 center">Status</th>
+                                            <th class="width-20 right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in doctors)
+                                        {
+                                            string profilePictureUrl = "#";
+                                            if (!string.IsNullOrEmpty(item.ProfilePictureUrl))
+                                                profilePictureUrl = Telemedicine.Utilities.AzureConfigurations.AZURE_BLOB_BASE_URL + item.ProfilePictureUrl;
+
+                                            <tr>
+                                                <td>
+                                                    <img class="image-profile-picture-css z-depth-3" width="50" src="@profilePictureUrl" onerror="transformErrorImgToLettersAvatar(this, '@item.FirstName @item.LastName', '50')" alt="@item.FirstName @item.MiddleName @item.LastName">
+                                                </td>
+                                                <td>
+                                                    @item.FirstName @item.MiddleName @item.LastName
+                                                </td>
+                                                <td class="width-30 center">@item.Logins.FirstOrDefault().Email</td>
+                                                <td class="width-20 center">
+                                                    @if (item.Logins.FirstOrDefault().IsLoginAllowed)
+                                                    {
+                                                        <div class="card-alert card green m-0">
+                                                            <div class="card-content white-text">
+                                                                <p>Active</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="card-alert card red m-0">
+                                                            <div class="card-content white-text">
+                                                                <p>Block</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </td>
+                                                <td class="width-20 right">
+                                                    @if (item.Logins.FirstOrDefault().IsLoginAllowed)
+                                                    {
+                                                        <a href="javascript:void(0);" onclick="changeStatus('@item.Logins.FirstOrDefault().LoginId',false)" class="red-text"><i class="material-icons">block</i></a>
+
+                                                    }
+                                                    else
+                                                    {
+                                                        <a href="javascript:void(0);" onclick="changeStatus('@item.Logins.FirstOrDefault().LoginId',true)" class="teal-text"><i class="material-icons">done</i></a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <p class="text-muted red-text">No Therapist found</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted red-text">No User found</p>
+        }
+    }
+    else
+    {
+        <p class="text-muted red-text">No User found</p>
+    }
+}

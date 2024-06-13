@@ -1,0 +1,72 @@
+﻿@model List<Telemedicine.Models.Dtos.ResponseDto.DoctorEducationResponseDto>
+@using Telemedicine.Utilities
+@inject Telemedicine.Services.Interfaces.ISessionManager _sessionManager;
+<div class="section section-data-tInstitutionables">
+    <table class="striped">
+        <thead>
+            <tr>
+                <th class="width-20 left-align">Type</th>
+                <th class="width-20 left-align">Title</th>
+                <th class="width-20 left-align">Duration</th>
+                <th class="width-30 left-align">Location</th>
+                @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                {
+                    <th class="width-10 right-align">Actions</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                if (!(Model is null))
+                {
+                    if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            string duration = "";
+                            if (item.EndDate.HasValue)
+                                duration = item.StartDate.ToFormatDate() + " - <br>" + item.EndDate.Value.ToFormatDate();
+                            else
+                                duration = item.StartDate.ToFormatDate() + " - Present";
+
+                            string educationType = "";
+                            if (!(item.DoctorEducationType is null))
+                                educationType = item.DoctorEducationType.LongTitle;
+
+                            <tr>
+                                <td class="width-20 left-align">@educationType</td>
+                                <td class="width-20 left-align">@item.Title</td>
+                                <td class="width-20 left-align">@Html.Raw(duration)</td>
+                                <td class="width-30 left-align">@item.Address</td>
+                                @if (_sessionManager.GetRole().Equals(UserRoleTypeStrings.Therapist))
+                                {
+                                    <td class="width-10 right-align">
+                                        <a href="javascript:void(0);" class="blue-text" onclick="getEducationById(@item.DoctorEducationId)"><i class="material-icons">edit</i></a>
+                                        <a href="javascript:void(0);" class="red-text" onclick="deleteEducationById(@item.DoctorEducationId)"><i class="material-icons">delete</i></a>
+                                    </td>
+                                }
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td class="width-100 center-align" colspan="5">
+                                <span class="text-muted">No Education Found</span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td class="width-100 center-align" colspan="5">
+                            <span class="text-muted">No Education Found</span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
